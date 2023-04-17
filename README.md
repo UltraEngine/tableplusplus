@@ -1,6 +1,8 @@
 # Table++
+By Josh Klint
+https://www.ultraengine.com
 
-By Josh Klint https://www.ultraengine.com
+-------------------------------------------------------------------
 
 This code is meant to bridge the gaps between dynamic data in C++, JSON files, and Lua.
 
