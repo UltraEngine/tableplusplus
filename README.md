@@ -6,7 +6,7 @@ https://www.ultraengine.com
 
 ## About
 
-This code is meant to bridge the gaps between dynamic data in C++, JSON files, and Lua.
+This code is meant to bridge the gaps between dynamic data in C++, JSON, and Lua.
 
 The tables can be accessed by Lua with the sol binding library, but the tables themselves do not use Lua.
 
