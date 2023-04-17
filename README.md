@@ -14,9 +14,9 @@ This is useful for dynamic application settings and user-defined settings added 
 
 ## License
 
-If you use this code you must include this README file somewhere in your application directory or subdirectory where it is accessible to the end user.
+If you use this code you must include this unmodified README file somewhere in your application directory or subdirectory where it is accessible to the end user.
 
-This readme must be included in any source code distribution.
+This unmodified readme file must be included in any source code distribution.
 
 You may not misrepresent the origin of this code.
 
