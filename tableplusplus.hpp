@@ -95,27 +95,6 @@ public:
         return m.end();
     }
 
-    //---------------------------------------------------------
-    //Sol does not like this:
-    /*table::iterator erase(table::iterator it)
-    {
-        if (t != TABLE_OBJECT) RuntimeError("JSON value is not an object");
-        return tableObject::erase(it);
-    }*/
-
-    //---------------------------------------------------------
-    //These are okay but it works without:
-    /*table::iterator find(const std::string& s)
-    {
-        return tableObject::find(s);
-    }
-
-    std::pair<table::iterator, bool> insert(std::pair<std::string, table> pair)
-    {
-        return tableObject::insert(pair);
-    }*/
-    //---------------------------------------------------------
-
     tableType GetType() const
     {
         return t;
@@ -256,7 +235,7 @@ public:
         return it->second;
     }
 
-    //Designed for convenience, not performance:
+    //Designed for convenience, not performance
     size_t size()
     {
         size_t sz = 0;
@@ -273,27 +252,6 @@ public:
         auto sz = size();
         m[sz] = j3;
     }
-
-    //TODO:
-    /*std::string to_json()
-    {
-        std::string s;
-        if (GetType() == TABLE_OBJECT)
-        {
-            s += "{\n";
-            for (auto& p : (*this))
-            {
-                s += p.first.operator std::string();
-                s += p.second.to_json();
-            }
-            s += "}\n";
-        }
-        else
-        {
-            std::string ss = (*this);
-            s += ss + "\n";
-        }
-    }*/
 
     friend SomeFuckedUpShit;
 };
@@ -356,53 +314,6 @@ struct SomeFuckedUpShit
             sol::user<lua_iterator_state>(std::move(it_state)),
             sol::lua_nil);
     }
-
-    static std::tuple<sol::object, sol::object> my_inext(
-        sol::user<lua_iterator_state&> user_it_state,
-        sol::this_state l) {
-        // this gets called
-        // to start the first iteration, and every
-        // iteration there after
-
-        // the state you passed in my_pairs is argument 1
-        // the key value is argument 2, but we do not
-        // care about the key value here
-        lua_iterator_state& it_state = user_it_state;
-        auto& it = it_state.it;
-        if (it == it_state.last) {
-            // return nil to signify that
-            // there's nothing more to work with.
-            return std::make_tuple(sol::object(sol::lua_nil),
-                sol::object(sol::lua_nil));
-        }
-        auto itderef = *it;
-        // 2 values are returned (pushed onto the stack):
-        // the key and the value
-        // the state is left alone
-        auto r = std::make_tuple(
-            sol::object(l, sol::in_place, it->first),
-            sol::object(l, sol::in_place, it->second));
-        // the iterator must be moved forward one before we return
-        std::advance(it, 1);
-        return r;
-    }
-
-    static auto my_ipairs(table& mt) {
-        // pairs expects 3 returns:
-        // the "next" function on how to advance,
-        // the "table" itself or some state,
-        // and an initial key value (can be nil)
-
-        // prepare our state
-        lua_iterator_state it_state(mt);
-        // sol::user is a space/time optimization over regular
-        // usertypes, it's incompatible with regular usertypes and
-        // stores the type T directly in lua without any pretty
-        // setup saves space allocation and a single dereference
-        return std::make_tuple(&my_next,
-            sol::user<lua_iterator_state>(std::move(it_state)),
-            sol::lua_nil);
-    }
 };
 
 int main(int argc, const char* argv[])
@@ -424,7 +335,7 @@ int main(int argc, const char* argv[])
 
     L->new_usertype<table>("JSONtable",
         sol::meta_function::pairs, &SomeFuckedUpShit::my_pairs,
-        sol::meta_function::ipairs, &SomeFuckedUpShit::my_ipairs,
+        sol::meta_function::ipairs, &SomeFuckedUpShit::my_pairs,
         sol::meta_function::to_string, [](const table& v)
         {
             std::string s = v;
