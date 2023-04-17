@@ -35,7 +35,7 @@ Here are some of the cool things you can do in C++ and Lua.
 ```c++
 table t;
 t["health"] = 100;
-t["windowsettings"] = table();
+t["windowsettings"] = {};
 t["windowsettings"]["position"] = 3;
 
 for (auto a : t)
