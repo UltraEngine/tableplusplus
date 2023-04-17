@@ -68,7 +68,7 @@ for (int n = 0; n < arr.size(); ++n)
 table t;
 
 t["health"] = 100;
-t["windowsettings"] = table();
+t["windowsettings"] = {};
 t["windowsettings"]["position"] = 3;
 
 t.resize(10);
