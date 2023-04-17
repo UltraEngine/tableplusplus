@@ -79,6 +79,12 @@ namespace tableplusplus
             return out.str();
         }
 
+        operator int() const
+        {
+            if (t == KEY_STRING) return 0;
+            return i;
+        }
+
         bool operator<(const tableKey k) const
         {
             if (t == KEY_INDEX && k.t == KEY_STRING) return true;

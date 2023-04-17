@@ -120,6 +120,8 @@ namespace tableplusplus
         auto current = size();
         if (current == sz) return;
 
+        //TODO: Get rid of negative indexes
+
         //Remove indexes beyond the max
         if (sz < current)
         {
@@ -180,7 +182,6 @@ namespace tableplusplus
 
     void table::dynamic_seti(const int key, const sol::object& value)
     {
-        if (key < 1) return;
         dynamic_set(tableKey(key - 1), value);
     }
 
