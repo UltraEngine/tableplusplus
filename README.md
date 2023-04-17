@@ -16,6 +16,8 @@ Only data types that can be written to JSON are supported.
 
 The Lua ipairs() function currently does not work on C++ tables.
 
+## Warning
+
 Currently there is a bug or design flaw that can be demonstrated as follows:
 
 ```lua
