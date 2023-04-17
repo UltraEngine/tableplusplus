@@ -3,9 +3,11 @@
 using namespace UltraEngine;
 
 struct SomeFuckedUpShit;
+class table;
 
 class tableKey
 {
+    friend table;
     friend SomeFuckedUpShit;
 
     enum KeyType
@@ -241,6 +243,33 @@ public:
         m[sz] = j3;
     }
 
+    //This is really slow but whatever
+    void resize(const size_t sz)
+    {
+        auto current = size();
+        if (sz > current)
+        {
+            for (size_t n = 0; n < sz - current; ++n)
+            {
+                push_back({});
+            }
+        }
+        else if (sz < current)
+        {
+            auto it = m.begin();
+            while (it != m.end())
+            {
+                if (it->first.t != tableKey::KeyType::KEY_INDEX) break;// index keys should be ordered first
+                if (it->first.i >= sz)
+                {
+                    it = m.erase(it);
+                    continue;
+                }
+                ++it;
+            }
+        }
+    }
+
     friend SomeFuckedUpShit;
 };
 
@@ -417,9 +446,19 @@ int main(int argc, const char* argv[])
     //----------------------------------
 
     table t;
+
     t["health"] = 100;
     t["windowsettings"] = table();
     t["windowsettings"]["position"] = 3;
+
+    t.resize(10);
+    for (int n = 0; n < t.size(); ++n)
+    {
+        t[n] = n;
+    }
+    t.resize(5);
+
+    Print("Size: " + String(t.size()));
 
     for (auto a : t)
     {
