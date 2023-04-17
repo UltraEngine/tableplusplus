@@ -1,4 +1,4 @@
-# Table++
+# table++
 
 By: Josh Klint
 
