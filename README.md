@@ -1,5 +1,5 @@
 # Table++
-By Josh Klint
+By: Josh Klint
 https://www.ultraengine.com
 
 -------------------------------------------------------------------
