@@ -215,24 +215,12 @@ public:
 
     table& operator[](const std::string& key)
     {
-        auto it = m.find(key);
-        if (it == m.end())
-        {
-            m[key] = table();
-            it = m.find(key);
-        }
-        return it->second;
+        return m[key];
     }
 
     table& operator[](const size_t key)
     {
-        auto it = m.find(key);
-        if (it == m.end())
-        {
-            m[key] = table();
-            it = m.find(key);
-        }
-        return it->second;
+        return m[key];
     }
 
     //Designed for convenience, not performance
@@ -251,6 +239,27 @@ public:
     {
         auto sz = size();
         m[sz] = j3;
+    }
+
+    //This is really slow but whatever
+    void resize(const size_t sz)
+    {
+        auto current = size();
+        if (sz > current)
+        {
+            for (size_t n = 0; n < sz - current; ++n)
+            {
+                push_back({});
+            }
+        }
+        else if (sz < current)
+        {
+            for (size_t n = current; n < sz; ++n)
+            {
+                auto it = m.find(n - 1);
+                if (it != m.end()) m.erase(it);
+            }
+        }
     }
 
     friend SomeFuckedUpShit;
@@ -429,7 +438,6 @@ int main(int argc, const char* argv[])
     //----------------------------------
 
     table t;
-
     t["health"] = 100;
     t["windowsettings"] = table();
     t["windowsettings"]["position"] = 3;
