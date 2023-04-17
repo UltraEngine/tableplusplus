@@ -44,7 +44,9 @@ collectgarbage()
 t["position"] = 5
 ```
 
-This would be easy to solve with shared pointers, but it would destroy the nice neat C++ syntax we have now. There's a fundamental difference between how Lua and C++ work that is causing this.
+~~This would be easy to solve with shared pointers, but it would destroy the nice neat C++ syntax we have now. There's a fundamental difference between how Lua and C++ work that is causing this.~~
+
+Working on a fix that uses a shared pointer for the interal StL map...
 
 ## License
 
