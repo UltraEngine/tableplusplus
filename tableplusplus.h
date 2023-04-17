@@ -58,8 +58,8 @@ namespace tableplusplus
 
         bool operator<(const tableKey k) const
         {
-            if (t == KEY_INDEX and k.t == KEY_STRING) return true;
-            if (t == KEY_STRING and k.t == KEY_INDEX) return false;
+            if (t == KEY_INDEX && k.t == KEY_STRING) return true;
+            if (t == KEY_STRING && k.t == KEY_INDEX) return false;
             if (t == KEY_INDEX) return i < k.i;
             return s < k.s;
         }
