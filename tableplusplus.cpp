@@ -3,12 +3,8 @@
 namespace tableplusplus
 {
 #ifdef SOL_VERSION
-    lua_State* LLL = NULL;// this won't work with multiple Lua states
-
     void bind_table_plus_plus(sol::state* L)
     {
-        LLL = L->lua_state();
-
         L->new_usertype<tableKey>("tableplusplus::tablekey",
             sol::meta_function::to_string, [](const tableKey& v)
             {
@@ -31,7 +27,7 @@ namespace tableplusplus
                 return s;
             },
             sol::meta_function::index, sol::overload(
-                [](table& v, std::string key) {
+                [](sol::this_state LLL, table& v, std::string key) {
                     auto val = v[key];
                     switch (val.GetType())
                     {
@@ -47,7 +43,7 @@ namespace tableplusplus
                         return sol::make_object(LLL, val);
                     }
                 },
-                [](table& v, int64_t index) {
+                [](sol::this_state LLL, table& v, int64_t index) {
                     if (index < 0 or index >= v.size()) sol::make_object(LLL, sol::lua_nil);
                     --index;
                     auto val = v[index];

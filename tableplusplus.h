@@ -6,7 +6,7 @@
 #include <map>
 #include <sstream>
 
-//Comment this out if you want
+//Comment this out if you don't want to use Sol
 #include <sol/sol.hpp>
 
 namespace tableplusplus
@@ -16,7 +16,6 @@ namespace tableplusplus
 
 #ifdef SOL_VERSION
     struct SomeFuckedUpShit;
-    extern lua_State* LLL;// this won't work with multiple Lua states
     extern void bind_table_plus_plus(sol::state* L);
 #endif
 
@@ -176,10 +175,16 @@ namespace tableplusplus
         operator std::string() const
         {
             if (t == TABLE_STRING) return s;
-            if (t == TABLE_FLOAT or t == TABLE_INTEGER)
+            if (t == TABLE_INTEGER)
             {
                 std::stringstream out;
                 out << i;
+                return out.str();
+            }
+            if (t == TABLE_FLOAT)
+            {
+                std::stringstream out;
+                out << f;
                 return out.str();
             }
             if (t == TABLE_BOOLEAN)
