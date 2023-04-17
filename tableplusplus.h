@@ -100,21 +100,26 @@ namespace tableplusplus
         bool b;
         std::string s;
         tableType t;
-        std::map<tableKey, table> m;
+        std::shared_ptr<std::map<tableKey, table> > _m;
+        std::shared_ptr<std::map<tableKey, table> > m();
 
     public:
 
         table();
         ~table();
         
+        bool operator==(const table& k) const;
+        
+        bool operator!=(const table& k) const;
+        
         std::map<tableKey, table>::iterator begin()
         {
-            return m.begin();
+            return m()->begin();
         }
 
         std::map<tableKey, table>::iterator end()
         {
-            return m.end();
+            return m()->end();
         }
 
         tableType GetType() const
@@ -199,7 +204,7 @@ namespace tableplusplus
             f = 0;
             b = false;
             s.clear();
-            m.clear();
+            _m = nullptr;
         }
 
         table(const int i_)
@@ -279,7 +284,7 @@ namespace tableplusplus
             it_t last;
 
             lua_iterator_state(table& mt)
-                : it(mt.m.begin()), last(mt.m.end()) {
+                : it(mt.m()->begin()), last(mt.m()->end()) {
             }
         };
 
