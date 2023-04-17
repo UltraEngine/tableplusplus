@@ -257,7 +257,7 @@ namespace tableplusplus
         //Designed for convenience, not performance
         size_t size()
         {
-            //Can be optimized with lower_bound or upper_bound, I need to think about this...
+            //Can be optimized with lower_bound...
             size_t sz = 0;
             while (true)
             {
@@ -286,8 +286,7 @@ namespace tableplusplus
             }
             else if (sz < current)
             { 
-                auto it = m.find(sz);
-                if (it == m.end()) it = m.lower_bound(sz);
+                auto it = m.lower_bound(sz);
                 while (it != m.end())
                 {
                     if (it->first.t != tableKey::KeyType::KEY_INDEX) break;// index keys are ordered first so this is fine
