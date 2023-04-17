@@ -12,6 +12,8 @@ Tables can be accessed by Lua using the [sol](https://github.com/ThePhD/sol2) li
 
 This is useful for dynamic application settings and user-defined settings added by script.
 
+Only data that can be written to JSON is supported.
+
 The Lua ipairs() function currently does not work on C++ tables.
 
 ## License
