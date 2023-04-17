@@ -284,8 +284,9 @@ namespace tableplusplus
                 }
             }
             else if (sz < current)
-            {
-                auto it = m.begin();// could be optimized...
+            { 
+                auto it = m.find(sz);
+                if (it == m.end()) it = m.lower_bound(sz);
                 while (it != m.end())
                 {
                     if (it->first.t != tableKey::KeyType::KEY_INDEX) break;// index keys are ordered first so this is fine
