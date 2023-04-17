@@ -254,10 +254,9 @@ namespace tableplusplus
             return m[key];
         }
 
-        //Designed for convenience, not performance
+        //This is not optimal, but it's the way Lua tables work
         size_t size()
         {
-            //Can be optimized with lower_bound...
             size_t sz = 0;
             while (true)
             {
@@ -273,7 +272,6 @@ namespace tableplusplus
             m[sz] = j3;
         }
 
-        //This is really slow but whatever
         void resize(const size_t sz)
         {
             auto current = size();
@@ -369,5 +367,4 @@ namespace tableplusplus
 
 #endif
 }
-
 #endif
