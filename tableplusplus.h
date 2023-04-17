@@ -280,18 +280,15 @@ namespace tableplusplus
             m[sz] = j3;
         }
 
+        //This is extremely inefficient and should not be used for large arrays, but it's the best emulation of Lua table behavior
         void resize(const size_t sz)
         {
             auto current = size();
-            if (sz > current)
+            if (current == sz) return;
+
+            //Remove indexes beyond the max
+            if (sz < current)
             {
-                for (size_t n = 0; n < sz - current; ++n)
-                {
-                    push_back({});
-                }
-            }
-            else if (sz < current)
-            { 
                 auto it = m.lower_bound(sz);
                 while (it != m.end())
                 {
@@ -303,6 +300,12 @@ namespace tableplusplus
                     }
                     ++it;
                 }
+            }
+
+            //Fill in missing indexes
+            for (size_t n = 0; n < sz; ++n)
+            {
+                m[n];
             }
         }
 
