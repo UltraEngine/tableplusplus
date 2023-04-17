@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 
 //Comment this out if you don't want to use Sol
 #include <sol/sol.hpp>
@@ -21,12 +22,13 @@ namespace tableplusplus
 
     enum tableType
     {
+        TABLE_OBJECT,
         TABLE_NULL,
         TABLE_INTEGER,
         TABLE_FLOAT,
         TABLE_BOOLEAN,
         TABLE_STRING,
-        TABLE_OBJECT
+        TABLE_INVALID
     };
 
     class tableKey
@@ -102,14 +104,9 @@ namespace tableplusplus
 
     public:
 
-        table()
-        {
-            i = 0;
-            f = 0;
-            b = false;
-            t = TABLE_OBJECT;
-        }
-
+        table();
+        ~table();
+        
         std::map<tableKey, table>::iterator begin()
         {
             return m.begin();
@@ -247,67 +244,25 @@ namespace tableplusplus
             t = TABLE_STRING;
         }
 
-        table& operator[](const char* c)
+        table(const std::nullptr_t)
         {
-            return (*this)[std::string(c)];
+            clear();
+            t = TABLE_NULL;
         }
 
-        table& operator[](const std::string& key)
-        {
-            return m[key];
-        }
+        table& operator[](const char* c);
 
-        table& operator[](const size_t key)
-        {
-            return m[key];
-        }
+        table& operator[](const std::string& key);
 
+        table& operator[](const size_t key);
+        
         //This is not optimal, but it's the way Lua tables work
-        size_t size()
-        {
-            size_t sz = 0;
-            while (true)
-            {
-                if (m.find(sz) == m.end()) break;
-                ++sz;
-            }
-            return sz;
-        }
-
-        void push_back(const table& j3)
-        {
-            auto sz = size();
-            m[sz] = j3;
-        }
+        size_t size();
+        
+        void push_back(const table& j3);
 
         //This is extremely inefficient and should not be used for large arrays, but it's the best emulation of Lua table behavior
-        void resize(const size_t sz)
-        {
-            auto current = size();
-            if (current == sz) return;
-
-            //Remove indexes beyond the max
-            if (sz < current)
-            {
-                auto it = m.lower_bound(sz);
-                while (it != m.end())
-                {
-                    if (it->first.t != tableKey::KeyType::KEY_INDEX) break;// index keys are ordered first so this is fine
-                    if (it->first.i >= sz)
-                    {
-                        it = m.erase(it);
-                        continue;
-                    }
-                    ++it;
-                }
-            }
-
-            //Fill in missing indexes
-            for (size_t n = 0; n < sz; ++n)
-            {
-                m[n];
-            }
-        }
+        void resize(const size_t sz);
 
 #ifdef SOL_VERSION
         friend SomeFuckedUpShit;
