@@ -47,7 +47,7 @@ for (auto a : t)
 }
 ```
 
-###  Array in C++
+###  Arrays in C++
 
 ```c++
 table arr;
