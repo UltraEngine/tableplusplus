@@ -123,6 +123,18 @@ for (auto a : t)
 }
 ```
 
+### C++ Copy Test
+
+```c++
+table t;
+t["window"] = {};
+t["window"]["position"] = 300;
+auto b = t["window"];
+t = nullptr;
+std::string s = b["position"];
+Print(s);
+```
+
 ###  Key / value in Lua
 
 ```lua
