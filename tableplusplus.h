@@ -257,6 +257,7 @@ namespace tableplusplus
         //Designed for convenience, not performance
         size_t size()
         {
+            //Can be optimized with lower_bound or upper_bound, I need to think about this...
             size_t sz = 0;
             while (true)
             {
