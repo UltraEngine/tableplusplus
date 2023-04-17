@@ -241,27 +241,6 @@ public:
         m[sz] = j3;
     }
 
-    //This is really slow but whatever
-    void resize(const size_t sz)
-    {
-        auto current = size();
-        if (sz > current)
-        {
-            for (size_t n = 0; n < sz - current; ++n)
-            {
-                push_back({});
-            }
-        }
-        else if (sz < current)
-        {
-            for (size_t n = current; n < sz; ++n)
-            {
-                auto it = m.find(n - 1);
-                if (it != m.end()) m.erase(it);
-            }
-        }
-    }
-
     friend SomeFuckedUpShit;
 };
 
