@@ -16,6 +16,10 @@ This is useful for dynamic application settings and user-defined settings added 
 
 If you use this code you must include this README file somewhere in your application directory or subdirectory where it is accessible to the end user.
 
+This readme must be included in any source code distribution.
+
+Do not misrepresent the origin of this code.
+
 ## Examples
 
 Here are some of the cool things you can do in C++ and Lua.
