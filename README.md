@@ -18,7 +18,7 @@ If you use this code you must include this README file somewhere in your applica
 
 This readme must be included in any source code distribution.
 
-Do not misrepresent the origin of this code.
+You may not misrepresent the origin of this code.
 
 ## Examples
 
