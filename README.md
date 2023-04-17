@@ -16,38 +16,6 @@ Only data types that can be written to JSON are supported.
 
 The Lua ipairs() function currently does not work on C++ tables.
 
-## Warning
-
-Currently there is a bug or design flaw that can be demonstrated as follows:
-
-```lua
---Create a table
-local a = Table()
-
---Add a child table
-a["window"] = Table()
-
---Set a value on the child table
-a["window"]["position"] = 300
-
---Print the value
-Print(tostring(a["window"]["position"]))
-
---Grab the child table
-local t = a["window"]
-
---Parent table goes out of scope lol
-a = nil
-collectgarbage()
-
--- try to access the child :_(
-t["position"] = 5
-```
-
-~~This would be easy to solve with shared pointers, but it would destroy the nice neat C++ syntax we have now. There's a fundamental difference between how Lua and C++ work that is causing this.~~
-
-Working on a fix that uses a shared pointer for the interal map...
-
 ## License
 
 This code may be used freely for any purpose.
