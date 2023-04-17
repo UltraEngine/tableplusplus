@@ -83,6 +83,7 @@ namespace tableplusplus
         {
             t = KEY_STRING;
             this->s = s;
+            i = 0;
         }
 
 #ifdef SOL_VERSION
@@ -157,7 +158,6 @@ namespace tableplusplus
         {
             if (t == TABLE_INTEGER) return i;
             if (t == TABLE_FLOAT) return f;
-            if (t == TABLE_BOOLEAN) return b;
             return 0;
         }
 
@@ -170,7 +170,6 @@ namespace tableplusplus
         {
             if (t == TABLE_FLOAT) return f;
             if (t == TABLE_INTEGER) return i;
-            if (t == TABLE_BOOLEAN) return b;
             return 0.0f;
         }
 
@@ -197,15 +196,7 @@ namespace tableplusplus
             return "";
         }
 
-        void clear()
-        {
-            t = TABLE_NULL;
-            i = 0;
-            f = 0;
-            b = false;
-            s.clear();
-            _m = nullptr;
-        }
+        void clear();
 
         table(const int i_)
         {
@@ -270,8 +261,19 @@ namespace tableplusplus
         void resize(const size_t sz);
 
 #ifdef SOL_VERSION
+
+    private:
+        void dynamic_set(const tableKey& key, const sol::object& value);
+        void dynamic_sets(const std::string& key, const sol::object& value);
+        void dynamic_seti(const int key, const sol::object& value);
+
+        sol::object dynamic_get(sol::this_state L, const tableKey& key);
+        sol::object dynamic_gets(sol::this_state L, const std::string& key);
+        sol::object dynamic_geti(sol::this_state L, const int key);
+       
         friend SomeFuckedUpShit;
         friend void bind_table_plus_plus(sol::state*);
+
 #endif
     };
 

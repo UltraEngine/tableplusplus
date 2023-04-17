@@ -2,14 +2,13 @@
 
 namespace tableplusplus
 {
-    typedef std::pair<tableKey, table> tpair;
-
     table::table()
     {
         i = 0;
         f = 0;
         b = false;
         t = TABLE_OBJECT;
+        m();
     }
 
     table::~table()
@@ -63,6 +62,17 @@ namespace tableplusplus
         return !((*this) == o);
     }
 
+    void table::clear()
+    {
+        t = TABLE_NULL;
+        i = 0;
+        f = 0;
+        b = false;
+        s.clear();
+        //_m = nullptr;
+        //if (_m) _m->clear();
+    }
+
     size_t table::size()
     {
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
@@ -80,7 +90,7 @@ namespace tableplusplus
     {
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
         auto sz = size();
-        m()->insert(tpair(sz, j3));
+        m()->insert_or_assign(sz, j3);
     }
 
     void table::resize(const size_t sz)
@@ -108,7 +118,7 @@ namespace tableplusplus
         //Fill in missing indexes
         for (size_t n = 0; n < sz; ++n)
         {
-            if (m()->find(n) == m()->end()) m()->insert(tpair(n, nullptr));
+            if (m()->find(n) == m()->end()) m()->insert_or_assign(n, nullptr);
         }
     }
 
@@ -123,7 +133,7 @@ namespace tableplusplus
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
         if (m()->find(key) == m()->end())
         {
-            m()->insert(tpair(key, nullptr));
+            m()->insert_or_assign(key, nullptr);
         }
         auto it = m()->find(key);
         return it->second;
@@ -134,13 +144,103 @@ namespace tableplusplus
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
         if (m()->find(key) == m()->end())
         {
-            m()->insert(tpair(key, nullptr));
+            m()->insert_or_assign(key, nullptr);
         }
         auto it = m()->find(key);
         return it->second;
     }
 
 #ifdef SOL_VERSION
+
+    void table::dynamic_sets(const std::string& key, const sol::object& value)
+    {
+        dynamic_set(tableKey(key), value);
+    }
+
+    void table::dynamic_seti(const int key, const sol::object& value)
+    {
+        if (key < 1) return;
+        dynamic_set(tableKey(key - 1), value);
+    }
+
+    void table::dynamic_set(const tableKey& key, const sol::object& value)
+    {
+        void* p;
+        double f;
+        switch (value.get_type())
+        {
+        case sol::type::number:
+            f = value.as<double>();
+            p = m().get();
+            m()->insert_or_assign(key, f);
+            break;
+        case sol::type::string:
+            m()->insert_or_assign(key, value.as<std::string>());
+            break;
+        case sol::type::boolean:
+            m()->insert_or_assign(key, value.as<bool>());
+            break;
+        case sol::type::userdata:
+            if (value.is<table>())
+            {
+                auto tbl = value.as<table*>();
+                m()->insert_or_assign(key, *tbl);
+            }
+            else
+            {
+                throw(std::runtime_error("userdata must be a C++ table"));
+            }
+            break;
+        case sol::type::table:
+            throw(std::runtime_error("cannot assign a Lua table to a C++ table"));
+            break;
+        default:
+            throw(std::runtime_error("assigning illegal type to C++ table"));
+            break;
+        }
+    }
+
+    sol::object table::dynamic_geti(sol::this_state L, const int key)
+    {
+        if (key < 1) return sol::lua_nil;
+        return dynamic_get(L, tableKey(key - 1));
+    }
+
+    sol::object table::dynamic_gets(sol::this_state L, const std::string& key)
+    {
+        return dynamic_get(L, tableKey(key));
+    }
+
+    sol::object table::dynamic_get(sol::this_state L, const tableKey& key)
+    {
+        auto sz = m()->size();
+        auto it = m()->find(key);
+        if (it == m()->end()) return sol::make_object(L, sol::lua_nil);
+        switch (it->second.t)
+        {
+        case TABLE_FLOAT:
+            return sol::make_object(L, it->second.f);
+            break;
+        case TABLE_INTEGER:
+            return sol::make_object(L, it->second.i);
+            break;
+        case TABLE_BOOLEAN:
+            return sol::make_object(L, it->second.b);
+            break;
+        case TABLE_STRING:
+            return sol::make_object(L, it->second.s);
+            break;
+        case TABLE_OBJECT:
+            return sol::make_object(L, it->second);
+            break;
+        case TABLE_NULL:
+        default:
+            return sol::make_object(L, sol::lua_nil);
+            break;
+        }
+        return sol::lua_nil;
+    }
+
     void bind_table_plus_plus(sol::state* L)
     {
         L->new_usertype<tableKey>("tableplusplus::tablekey",
@@ -167,94 +267,13 @@ namespace tableplusplus
         L->new_usertype<table>("tableplusplus::table",
             sol::meta_function::pairs, &SomeFuckedUpShit::my_pairs,
             sol::meta_function::ipairs, &SomeFuckedUpShit::my_pairs,
-            sol::meta_function::to_string, [](const table& v)
-            {
-                std::string s = v;
-                return s;
-            },
-            sol::meta_method::equal_to, 
-                [](const table& a, const table& b) { return a == b; },
-            sol::meta_function::index, sol::overload(
-                [](sol::this_state LLL, table& v, std::string key) {
-                    table val = v[key];
-                    switch (val.GetType())
-                    {
-                    case TABLE_INTEGER:
-                        return sol::make_object(LLL, val.i);
-                    case TABLE_FLOAT:
-                        return sol::make_object(LLL, val.f);
-                    case TABLE_BOOLEAN:
-                        return sol::make_object(LLL, val.b);
-                    case TABLE_STRING:
-                        return sol::make_object(LLL, val.s);
-                    case TABLE_OBJECT:
-                        return sol::make_object(LLL, val);
-                    }
-                    return sol::make_object(LLL, sol::lua_nil);
-                },
-                [](sol::this_state LLL, table& v, int64_t index) {
-                    if (index < 0 || index >= v.size()) sol::make_object(LLL, sol::lua_nil);
-                    --index;
-                    table val = v[index];
-                    switch (val.GetType())
-                    {
-                    case TABLE_INTEGER:
-                        return sol::make_object(LLL, val.i);
-                    case TABLE_FLOAT:
-                        return sol::make_object(LLL, val.f);
-                    case TABLE_BOOLEAN:
-                        return sol::make_object(LLL, val.b);
-                    case TABLE_STRING:
-                        return sol::make_object(LLL, val.s);
-                    case TABLE_OBJECT:
-                        return sol::make_object(LLL, val);
-                    }
-                    return sol::make_object(LLL, sol::lua_nil);
-                }
-                ),
-                sol::meta_function::new_index, sol::overload(
-                    [](table& v, int64_t index, double x)
-                    {
-                        --index;
-                        if (index < 0) return;
-                        v[index] = x;
-                    },
-                    [](table& v, std::string key, double x)
-                    {
-                        v[key] = x;
-                    },
-                    [](table& v, int64_t index, std::string x)
-                    {
-                        --index;
-                        if (index < 0) return;
-                        v[index] = x;
-                    },
-                    [](table& v, std::string key, std::string x)
-                    {
-                        v[key] = x;
-                    },
-                    [](table& v, int64_t index, bool x)
-                    {
-                        --index;
-                        if (index < 0) return;
-                        v[index] = x;
-                    },
-                    [](table& v, std::string key, bool x)
-                    {
-                        v[key] = x;
-                    },
-                    [](table& v, int64_t index, const table& x)
-                    {
-                        --index;
-                        if (index < 0) return;
-                        v[index] = x;
-                    },
-                    [](table& v, std::string key, const table& x)
-                    {
-                        v[key] = x;
-                    }
-                 )
-             );
+            sol::meta_function::to_string, [](const table& v) { std::string s = v; return s; },
+            sol::meta_method::equal_to, [](const table& a, const table& b) { return a == b; },
+            sol::meta_function::index, sol::overload(&table::dynamic_gets, &table::dynamic_geti),
+            sol::meta_function::new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)//,
+            //sol::meta_function::static_index, sol::overload(&table::dynamic_gets, &table::dynamic_geti),
+            //sol::meta_function::static_new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)
+        );
         L->set_function("Table", []() { return table(); });
     }
 #endif
