@@ -44,7 +44,7 @@ namespace tableplusplus
                     }
                 },
                 [](sol::this_state LLL, table& v, int64_t index) {
-                    if (index < 0 or index >= v.size()) sol::make_object(LLL, sol::lua_nil);
+                    if (index < 0 || index >= v.size()) sol::make_object(LLL, sol::lua_nil);
                     --index;
                     auto val = v[index];
                     switch (val.GetType())
