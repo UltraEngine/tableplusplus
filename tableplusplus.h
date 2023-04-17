@@ -6,6 +6,9 @@
 #include <map>
 #include <sstream>
 
+//Comment this out if you want
+#include <sol/sol.hpp>
+
 namespace tableplusplus
 {
     class table;
