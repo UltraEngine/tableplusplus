@@ -15,4 +15,4 @@ This is useful for dynamic application settings and user-defined settings added 
 
 ## License
 
-If you use this code you must include this README file somewhere in your application directory or subdirectory.
+If you use this code you must include this README file somewhere in your application directory or subdirectory where it is accessible to the end user.
