@@ -22,7 +22,7 @@ This code may be used freely for any purpose.
 
 If you use this code you must include this unmodified README file somewhere in your application directory or subdirectory where it is accessible to the end user.
 
-This unmodified readme file must be included in any source code distribution.
+This unmodified readme file must be included in any source code distribution, or distribution of code derived from this code.
 
 You may not misrepresent the origin of this code.
 
