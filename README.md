@@ -70,7 +70,7 @@ t["windowsettings"]["position"] = 3;
 t.resize(10);
 for (int n = 0; n < t.size(); ++n)
 {
-t[n] = n;
+    t[n] = n;
 }
 
 //Insert an out-of-order index and it will get trimmed off in the resize call
@@ -82,10 +82,10 @@ Print("Size: " + String(t.size()));
 
 for (auto a : t)
 {
-std::string s = a.first;
-Print(s);
-s = a.second;
-Print(s);
+    std::string s = a.first;
+    Print(s);
+    s = a.second;
+    Print(s);
 }
 ```
 
