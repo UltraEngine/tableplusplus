@@ -64,7 +64,7 @@ for (int n = 0; n < arr.size(); ++n)
     Print(std::string(arr[n]));
 }
 ```
-### Mixing Key / value and array-style keys
+### Mixing key / value and array-style keys
 
 ```c++
 table t;
