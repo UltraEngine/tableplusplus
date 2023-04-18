@@ -134,3 +134,34 @@ for k,v in ipairs(b) do
 	Print(k ..": ".. tostring(v))
 end
 ```
+
+## Convert to JSON
+
+```c++
+table t;
+
+//Pure integer keys get output as a JSON array
+for (int n = 0; n < 10; ++n)
+{
+    t[n] = n;
+}
+printf(t.to_json() + "\n");
+
+//Mix string and integer keys
+t["health"] = 100;
+t["money"] = 0;
+t["nullvalue"] = nullptr;
+t["zvalue"] = true;
+
+t["subtable"] = {};
+t["subtable"]["position"] = 50;
+t["subtable"]["size"] = 300;
+t["subtable1"] = t["subtable"];
+
+t["subarray"] = {};
+t["subarray"][0] = 1;
+t["subarray"][1] = 2;
+t["subarray"][2] = 3;
+
+printf(t.to_json());
+```
