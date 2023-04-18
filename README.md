@@ -14,8 +14,6 @@ This is useful for dynamic application settings and user-defined settings added 
 
 Only data types that can be written to JSON are supported.
 
-The Lua ipairs() function currently does not work on C++ tables.
-
 ## License
 
 This code may be used freely for any purpose.
@@ -110,7 +108,7 @@ Print(s);
 ###  Key / value in Lua
 
 ```lua
-local a = Table()
+local a = ctable()
 a["health"] = 100
 a["color"] = "blue"
 
@@ -122,7 +120,7 @@ end
 ### Arrays in Lua
 
 ```lua
-b = Table()
+b = ctable()
 b[1] = 1
 b[2] = 2
 b[3] = 3
@@ -130,5 +128,9 @@ b[4] = 4
 
 for n = 1, #b do
 	Print(b[n])
+end
+
+for k,v in ipairs(b) do
+	Print(k ..": ".. tostring(v))
 end
 ```
