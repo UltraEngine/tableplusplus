@@ -93,7 +93,7 @@ for (auto a : t)
 }
 ```
 
-### C++ Copy Test
+### C++ copy test
 
 ```c++
 table t;
