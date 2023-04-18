@@ -10,6 +10,8 @@ This code is meant to bridge the gaps between dynamic data in C++, Lua, and JSON
 
 Tables can be accessed by Lua using the [sol](https://github.com/ThePhD/sol2) library, but the tables themselves do not use Lua.
 
+Tables can be saved to or loaded from JSON files using the [nlohmann::json](https://github.com/nlohmann/json) library.
+
 This is useful for dynamic application settings and user-defined settings added by script.
 
 Only data types that can be written to JSON files are supported.
