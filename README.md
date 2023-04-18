@@ -168,7 +168,7 @@ t["subarray"][2] = 3;
 printf(t.to_json());
 ```
 
-## Programming with Tables
+## Programming Guide
 
 Usage in C++ generally follows the same rules as STL containers like maps and vectors. The following methods are available:
 
