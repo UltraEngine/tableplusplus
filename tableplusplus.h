@@ -29,6 +29,8 @@ You may not use this code in AI training models.
 #include <stdexcept>
 
 //Comment this out if you don't want to use Sol
+#define SOL_NO_CHECK_NUMBER_PRECISION 1
+#define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
 
 namespace tableplusplus
@@ -38,6 +40,8 @@ namespace tableplusplus
 
 #ifdef SOL_VERSION
     struct IDKWTFLOL;
+    struct tablewrapper;
+    struct tablekeywrapper;
     extern void bind_table_plus_plus(sol::state* L);
 #endif
 
@@ -57,6 +61,7 @@ namespace tableplusplus
         friend table;
 #ifdef SOL_VERSION
         friend IDKWTFLOL;
+        friend tablekeywrapper;
 #endif
 
         enum KeyType
@@ -68,6 +73,8 @@ namespace tableplusplus
 
         std::string s;
         int i;
+
+        tableKey() {};
 
     public:
 
@@ -114,6 +121,7 @@ namespace tableplusplus
         }
 
 #ifdef SOL_VERSION
+        friend tablewrapper;
         friend void bind_table_plus_plus(sol::state*);
 #endif        
     };
@@ -300,11 +308,56 @@ namespace tableplusplus
        
         friend IDKWTFLOL;
         friend void bind_table_plus_plus(sol::state*);
-
+        friend tablewrapper;
 #endif
     };
 
 #ifdef SOL_VERSION
+
+    struct tablekeywrapper : private tableKey
+    {
+        friend tablekeywrapper;
+        friend void bind_table_plus_plus(sol::state* L);
+
+        tableKey tokey()
+        {
+            return *this;
+        }
+
+        tablekeywrapper(const tableKey& t)
+        {
+            this->t = t.t;
+            this->i = t.i;
+            this->s = t.s;
+        }
+    };
+
+    struct tablewrapper : private table
+    {
+        friend table;
+        friend tablewrapper;
+        friend void bind_table_plus_plus(sol::state* L);
+
+        auto begin() { return table::begin(); }
+        auto end() { return table::end(); }
+        size_t size() { return table::size(); }
+
+        table totable()
+        {
+            return *this;
+        }
+
+        tablewrapper(const table& t)
+        {
+            this->t = t.t;
+            this->b = t.b;
+            this->i = t.i;
+            this->f = t.f;
+            this->s = t.s;
+            this->_m = t._m;
+        }
+    };
+
     struct IDKWTFLOL
     {
         struct lua_iterator_state {
@@ -340,8 +393,8 @@ namespace tableplusplus
             // the key and the value
             // the state is left alone
             auto r = std::make_tuple(
-                sol::object(l, sol::in_place, it->first),
-                sol::object(l, sol::in_place, it->second));
+                sol::object(l, sol::in_place, tablekeywrapper(it->first)),
+                sol::object(l, sol::in_place, tablewrapper(it->second)));
             // the iterator must be moved forward one before we return
             std::advance(it, 1);
             return r;

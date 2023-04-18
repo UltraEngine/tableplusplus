@@ -201,10 +201,10 @@ namespace tableplusplus
             m()->insert_or_assign(key, value.as<bool>());
             break;
         case sol::type::userdata:
-            if (value.is<table>())
+            if (value.is<tablewrapper>())
             {
-                auto tbl = value.as<table*>();
-                m()->insert_or_assign(key, *tbl);
+                auto tbl = value.as<tablewrapper*>();
+                m()->insert_or_assign(key, tbl->totable());
             }
             else
             {
@@ -257,7 +257,7 @@ namespace tableplusplus
             return sol::make_object(L, it->second.s);
             break;
         case TABLE_OBJECT:
-            return sol::make_object(L, it->second);
+            return sol::make_object(L, tablewrapper(it->second));
             break;
         case TABLE_NULL:
         default:
@@ -269,8 +269,8 @@ namespace tableplusplus
 
     void bind_table_plus_plus(sol::state* L)
     {
-        L->new_usertype<tableKey>("tableplusplus::tablekey",
-            sol::meta_method::type, [](const tableKey& v)
+        L->new_usertype<tablekeywrapper>("tableplusplus_tablekey",
+            sol::meta_method::type, [](const tablekeywrapper& v)
             {
                 if (v.t == TABLE_OBJECT) return "userdata";
                 if (v.t == TABLE_NULL) return "nil";
@@ -278,13 +278,13 @@ namespace tableplusplus
                 if (v.t == TABLE_BOOLEAN) return "boolean";
                 return "userdata";
             },
-            sol::meta_function::to_string, [](const tableKey& v)
+            sol::meta_function::to_string, [](const tablekeywrapper& v)
             {
            //     if (v.t == tableKey::KeyType::KEY_INDEX) throw(std::runtime_error("value is not a string."));
                 if (v.t == tableKey::KeyType::KEY_STRING) return v.s;
                 return std::string("");
             },
-            sol::meta_function::concatenation, [](const tableKey& v, std::string s)
+            sol::meta_function::concatenation, [](const tablekeywrapper& v, std::string s)
             {
             //    if (v.t == tableKey::KeyType::KEY_INDEX) throw(std::runtime_error("value is not a string."));
                 std::string ss;
@@ -293,14 +293,20 @@ namespace tableplusplus
             }
             );
 
-        L->new_usertype<table>("tableplusplus::table",
+        L->new_usertype<tablewrapper>("tableplusplus_table",
             sol::meta_function::pairs, &IDKWTFLOL::my_pairs,
-            sol::meta_function::to_string, [](const table& v) { std::string s = v; return s; },
-            sol::meta_method::equal_to, [](const table& a, const table& b) { return a == b; },
-            sol::meta_function::index, sol::overload(&table::dynamic_gets, &table::dynamic_geti),
-            sol::meta_function::new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)
+            sol::meta_function::to_string, [](const tablewrapper& v) { std::string s = v; return s; },
+            sol::meta_method::equal_to, [](const tablewrapper& a, const tablewrapper& b) { return a == b; },
+            sol::meta_method::new_index, sol::overload(
+                [](tablewrapper& t, int k, sol::object o) { t.dynamic_seti(k, o); },
+                [](tablewrapper& t, std::string k, sol::object o) { t.dynamic_sets(k, o); }
+            ),
+            sol::meta_method::index, sol::overload(
+                [](sol::this_state L, tablewrapper& t, int k) { return t.dynamic_geti(L, k); },
+                [](sol::this_state L, tablewrapper& t, std::string k) { return t.dynamic_gets(L, k); }
+            )
         );
-        L->set_function("ctable", []() { return table(); });
+        L->set_function("ctable", []() { return tablewrapper(table()); });
     }
 #endif
 }
