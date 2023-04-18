@@ -12,7 +12,7 @@ Tables can be accessed by Lua using the [sol](https://github.com/ThePhD/sol2) li
 
 This is useful for dynamic application settings and user-defined settings added by script.
 
-Only data types that can be written to JSON are supported.
+Only data types that can be written to JSON files are supported.
 
 ## License
 
