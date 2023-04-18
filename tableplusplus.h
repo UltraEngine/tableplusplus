@@ -33,6 +33,10 @@ You may not use this code in AI training models.
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol/sol.hpp>
 
+//Comment this out if you don't want to use nlohmann::json
+//#include <json.hpp>
+#include "../nlohmann_json/single_include/nlohmann/json.hpp"
+
 namespace tableplusplus
 {
     class table;
@@ -281,12 +285,20 @@ namespace tableplusplus
             t = TABLE_NULL;
         }
 
+#ifdef NLOHMANN_JSON_VERSION_MAJOR
+
+        table(const nlohmann::json& j3);
+
+#endif
+
         table& operator[](const char* c);
 
         table& operator[](const std::string& key);
 
-        table& operator[](const size_t key);
+        table& operator[](const int key);
         
+        table& operator[](const size_t key);
+
         //This is not optimal, but it's the way Lua tables work
         size_t size();
         
@@ -294,6 +306,8 @@ namespace tableplusplus
 
         //This is extremely inefficient and should not be used for large arrays, but it's the best emulation of Lua table behavior
         void resize(const size_t sz);
+
+        std::string to_json(const std::string indent = "");
 
 #ifdef SOL_VERSION
 

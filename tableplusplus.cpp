@@ -162,6 +162,11 @@ namespace tableplusplus
         return it->second;
     }
 
+    table& table::operator[](const int key)
+    {
+        return (*this)[size_t(key)];
+    }
+
     table& table::operator[](const size_t key)
     {
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
@@ -172,6 +177,98 @@ namespace tableplusplus
         auto it = m()->find(key);
         return it->second;
     }
+
+    std::string table::to_json(const std::string indent)
+    {
+        auto type = GetType();
+        if (type != TABLE_OBJECT)
+        {
+            if (type == TABLE_NULL) return indent + "null";
+            return indent + std::string(*this);
+        }
+        std::string j3;
+        bool isarray = size() == m()->size();
+        if (isarray)
+        {
+            j3 += indent + "[\n";
+            auto count = size();
+            for (int n = 0; n < count; ++n)
+            {
+                j3 += (*this)[n].to_json(indent + "	");
+                if (n != count - 1) j3 += ",";
+                j3 += "\n";
+            }
+            j3 += indent + "]";
+        }
+        else
+        {
+            j3 += indent + "{\n";
+            int n = 0;
+            int count = m()->size();
+            for (auto& pair : *this)
+            {
+                j3 += indent + "	\"" + std::string(pair.first) + "\":";
+                if (pair.second.GetType() == TABLE_OBJECT)
+                {
+                    j3 += "\n";
+                    j3 += pair.second.to_json(indent + "	");
+                }
+                else
+                {
+                    j3 += " " + pair.second.to_json();
+                }
+                if (n != count - 1) j3 += ",";
+                j3 += "\n";
+                ++n;
+            }
+            j3 += indent + "}";
+        }
+        return j3;
+    }
+
+#ifdef NLOHMANN_JSON_VERSION_MAJOR
+
+    table::table(const nlohmann::json& j3) : i(0), f(0), b(false), t(TABLE_NULL)
+    {
+        if (j3.is_array())
+        {
+            t = TABLE_OBJECT;
+            for (int n = 0; n < j3.size(); ++n)
+            {
+                m()->insert_or_assign(n, table(j3[n]));
+            }
+        }
+        else if (j3.is_object())
+        {
+            t = TABLE_OBJECT;
+            for (const auto& pair : j3.items())
+            {
+                m()->insert_or_assign(pair.key(), table(pair.value()));
+            }
+        }
+        else if (j3.is_string())
+        {
+            t = TABLE_STRING;
+            s = j3;
+        }
+        else if (j3.is_boolean())
+        {
+            t = TABLE_BOOLEAN;
+            b = j3;
+        }
+        else if (j3.is_number_float())
+        {
+            t = TABLE_FLOAT;
+            f = j3;
+        }
+        else if (j3.is_number_integer() || j3.is_number_unsigned())
+        {
+            t = TABLE_INTEGER;
+            i = j3;
+        }
+    }
+
+#endif
 
 #ifdef SOL_VERSION
 
