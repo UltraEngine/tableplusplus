@@ -91,7 +91,7 @@ namespace tableplusplus
         b = false;
         s.clear();
         //_m = nullptr;
-        //if (_m) _m->clear();
+        //_v = nullptr;
     }
 
     size_t table::size()
@@ -213,6 +213,12 @@ namespace tableplusplus
                 throw(std::runtime_error("userdata must be a C++ table"));
             }
             break;
+        case sol::type::none:
+            f = 4;
+            break;
+        case sol::type::nil:
+            m()->insert_or_assign(key, nullptr);
+            break;
         case sol::type::table:
             throw(std::runtime_error("cannot assign a Lua table to a C++ table"));
             break;
@@ -276,25 +282,25 @@ namespace tableplusplus
             },
             sol::meta_function::to_string, [](const tableKey& v)
             {
-                std::string s = v;
-                return s;
+           //     if (v.t == tableKey::KeyType::KEY_INDEX) throw(std::runtime_error("value is not a string."));
+                if (v.t == tableKey::KeyType::KEY_STRING) return v.s;
+                return std::string("");
             },
             sol::meta_function::concatenation, [](const tableKey& v, std::string s)
             {
-                std::string ss = std::string(v);
+            //    if (v.t == tableKey::KeyType::KEY_INDEX) throw(std::runtime_error("value is not a string."));
+                std::string ss;
+                if (v.t == tableKey::KeyType::KEY_STRING) ss = v.s;
                 return ss + s;
             }
             );
 
         L->new_usertype<table>("tableplusplus::table",
-            sol::meta_function::pairs, &SomeFuckedUpShit::my_pairs,
-            sol::meta_function::ipairs, &SomeFuckedUpShit::my_pairs,
+            sol::meta_function::pairs, &IDKWTFLOL::my_pairs,
             sol::meta_function::to_string, [](const table& v) { std::string s = v; return s; },
             sol::meta_method::equal_to, [](const table& a, const table& b) { return a == b; },
             sol::meta_function::index, sol::overload(&table::dynamic_gets, &table::dynamic_geti),
-            sol::meta_function::new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)//,
-            //sol::meta_function::static_index, sol::overload(&table::dynamic_gets, &table::dynamic_geti),
-            //sol::meta_function::static_new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)
+            sol::meta_function::new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)
         );
         L->set_function("Table", []() { return table(); });
     }

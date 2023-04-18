@@ -37,7 +37,7 @@ namespace tableplusplus
     class tableKey;
 
 #ifdef SOL_VERSION
-    struct SomeFuckedUpShit;
+    struct IDKWTFLOL;
     extern void bind_table_plus_plus(sol::state* L);
 #endif
 
@@ -56,7 +56,7 @@ namespace tableplusplus
     {
         friend table;
 #ifdef SOL_VERSION
-        friend SomeFuckedUpShit;
+        friend IDKWTFLOL;
 #endif
 
         enum KeyType
@@ -121,7 +121,7 @@ namespace tableplusplus
     class table
     {
 #ifdef SOL_VERSION
-        friend SomeFuckedUpShit;
+        friend IDKWTFLOL;
 #endif
         double f;
         int64_t i;
@@ -298,14 +298,14 @@ namespace tableplusplus
         sol::object dynamic_gets(sol::this_state L, const std::string& key);
         sol::object dynamic_geti(sol::this_state L, const int key);
        
-        friend SomeFuckedUpShit;
+        friend IDKWTFLOL;
         friend void bind_table_plus_plus(sol::state*);
 
 #endif
     };
 
 #ifdef SOL_VERSION
-    struct SomeFuckedUpShit
+    struct IDKWTFLOL
     {
         struct lua_iterator_state {
             typedef std::map<tableKey, table>::iterator it_t;
@@ -364,7 +364,6 @@ namespace tableplusplus
                 sol::lua_nil);
         }
     };
-
 #endif
 }
 #endif
