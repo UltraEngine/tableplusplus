@@ -167,3 +167,22 @@ t["subarray"][2] = 3;
 
 printf(t.to_json());
 ```
+
+## Programming with Tables
+
+Usage in C++ generally follows the same rules as STL containers like maps and vectors. The following methods are available:
+
+- begin()
+- clear()
+- end()
+- operator[]
+- push_back()
+- size()
+
+Note that size() will return the number of entries when the table is treated as a Lua array, which may be different from the number of entries that iterating through begin()...end() will provide.
+
+Values can be retrieved using either a string or an integer for the key.
+
+Usage in Lua is identical to Lua tables, with the following exceptions:
+- C++ tables are created with the ctable() function instead of {}.
+- The only values that can be insert into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
