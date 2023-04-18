@@ -16,7 +16,7 @@ Only data types that can be written to JSON are supported.
 
 ## License
 
-This code may be used freely for any purpose.
+This code may be used freely for any purpose unless stated otherwise below.
 
 If you use this code you must include this unmodified README file somewhere in your application directory or subdirectory where it is accessible to the end user.
 
