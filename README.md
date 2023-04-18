@@ -172,12 +172,12 @@ printf(t.to_json());
 
 Usage in C++ generally follows the same rules as STL containers like maps and vectors. The following methods are available:
 
-- begin()
-- clear()
-- end()
+- begin
+- clear
+- end
 - operator[]
-- push_back()
-- size()
+- push_back
+- size
 
 Note that size() will return the number of entries when the table is treated as a Lua array, which may be different from the number of entries that iterating through begin()...end() will provide.
 
