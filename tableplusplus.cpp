@@ -302,7 +302,7 @@ namespace tableplusplus
             sol::meta_function::index, sol::overload(&table::dynamic_gets, &table::dynamic_geti),
             sol::meta_function::new_index, sol::overload(&table::dynamic_sets, &table::dynamic_seti)
         );
-        L->set_function("Table", []() { return table(); });
+        L->set_function("ctable", []() { return table(); });
     }
 #endif
 }
