@@ -185,4 +185,4 @@ Values can be retrieved using either a string or an integer for the key.
 
 Usage in Lua is identical to Lua tables, with the following exceptions:
 - C++ tables are created with the ctable() function instead of {}.
-- The only values that can be insert into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
+- The only values that can be inserted into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
