@@ -8,11 +8,11 @@ https://www.ultraengine.com
 
 This code is meant to bridge the gaps between dynamic data in C++, Lua, and JSON with an STL-like implementation of Lua tables.
 
+This is useful for dynamic application settings and user-defined settings added by script.
+
 Tables can be accessed by Lua using the [sol](https://github.com/ThePhD/sol2) library, but the tables themselves do not use Lua.
 
 Tables can be saved in JSON format or loaded from JSON using the [nlohmann::json](https://github.com/nlohmann/json) library.
-
-This is useful for dynamic application settings and user-defined settings added by script.
 
 Only data types that can be written to JSON files are supported.
 
