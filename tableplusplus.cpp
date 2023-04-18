@@ -187,7 +187,7 @@ namespace tableplusplus
             return indent + std::string(*this);
         }
         std::string j3;
-        bool isarray = size() == m()->size();
+        bool isarray = (size() == m()->size()) && !m()->empty();
         if (isarray)
         {
             j3 += indent + "[\n";
