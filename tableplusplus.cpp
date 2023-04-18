@@ -48,9 +48,9 @@ namespace tableplusplus
     {
         if (t != o.t)
         {
-            if (t == TABLE_INTEGER or t == TABLE_FLOAT)
+            if (t == TABLE_INTEGER || t == TABLE_FLOAT)
             {
-                if (t == TABLE_INTEGER or t == TABLE_FLOAT)
+                if (t == TABLE_INTEGER || t == TABLE_FLOAT)
                 {
                     return double(*this) == double(o);
                 }
@@ -187,13 +187,11 @@ namespace tableplusplus
 
     void table::dynamic_set(const tableKey& key, const sol::object& value)
     {
-        void* p;
         double f;
         switch (value.get_type())
         {
         case sol::type::number:
             f = value.as<double>();
-            p = m().get();
             m()->insert_or_assign(key, f);
             break;
         case sol::type::string:
@@ -276,7 +274,7 @@ namespace tableplusplus
             {
                 if (v.t == TABLE_OBJECT) return "userdata";
                 if (v.t == TABLE_NULL) return "nil";
-                if (v.t == TABLE_INTEGER or v.t == TABLE_FLOAT) return "number";
+                if (v.t == TABLE_INTEGER || v.t == TABLE_FLOAT) return "number";
                 if (v.t == TABLE_BOOLEAN) return "boolean";
                 return "userdata";
             },
