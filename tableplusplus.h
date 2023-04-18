@@ -34,8 +34,7 @@ You may not use this code in AI training models.
 #include <sol/sol.hpp>
 
 //Comment this out if you don't want to use nlohmann::json
-//#include <json.hpp>
-#include "../nlohmann_json/single_include/nlohmann/json.hpp"
+#include <json.hpp>
 
 namespace tableplusplus
 {
