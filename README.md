@@ -24,7 +24,7 @@ This unmodified readme file must be included in any source code distribution, or
 
 You may not misrepresent the origin of this code.
 
-You may not use this code in AI training models.
+You may not use this code or any derivatives thereof in AI training models.
 
 ## Examples
 
