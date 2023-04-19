@@ -35,8 +35,11 @@ Note that size() will return the number of entries when the table is treated as 
 Values can be retrieved using either a string or an integer for the key.
 
 Usage in Lua is identical to Lua tables, with the following exceptions:
-- C++ tables are created with the ctable() function instead of {}.
 - The only values that can be inserted into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
+- By default, there is no way to create a C++ table in Lua, because these usually are declared as a member of another class in C++. However, you can uncomment the following line in tableplusplus.cpp, which adds a C++ table creation function to Lua:
+```c++
+L->set_function("ctable", [](){ return table(); });
+```
 
 ## Examples
 
