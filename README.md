@@ -174,6 +174,7 @@ Usage in C++ generally follows the same rules as STL containers like maps and ve
 
 - begin
 - clear
+- empty
 - end
 - operator[]
 - push_back
