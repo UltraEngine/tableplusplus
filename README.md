@@ -18,7 +18,7 @@ Only data types that can be written to JSON files are supported.
 
 ## Programming Guide
 
-Usage in C++ generally follows the same rules as STL containers, but tables have properties of both STL maps and vectors. The following methods are available:
+Usage in C++ generally follows the same rules as STL containers, but tables have properties of both STL maps and vectors. The STL-like following methods are available:
 
 - begin
 - clear
@@ -29,6 +29,12 @@ Usage in C++ generally follows the same rules as STL containers, but tables have
 - operator[]
 - push_back
 - size
+
+Additional methods are below:
+
+- copy
+- get_type
+- to_json
 
 Note that size() will return the number of entries when the table is treated as a Lua array, which may be different from the number of entries that iterating through begin()...end() will provide.
 
