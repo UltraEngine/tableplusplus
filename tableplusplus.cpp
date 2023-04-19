@@ -28,14 +28,54 @@ namespace tableplusplus
         i = 0;
         f = 0;
         b = false;
-        t = TABLE_OBJECT;
+        t = type::object;
         m();
     }
 
     table::~table()
     {
-        t = TABLE_INVALID;
+        t = type::null;
         _m = nullptr;
+    }
+
+    bool table::is_string()
+    {
+        return t == type::string;
+    }
+
+    bool table::is_object()
+    {
+        return t == type::object;
+    }
+
+    bool table::is_number()
+    {
+        return t == type::number_integer || t == type::number_float;
+    }
+
+    bool table::is_boolean()
+    {
+        return t == type::boolean;
+    }
+
+    bool table::is_null()
+    {
+        return t == type::null;
+    }
+
+    bool table::is_integer()
+    {
+        return t == type::number_integer;
+    }
+
+    bool table::is_float()
+    {
+        return t == type::number_float;
+    }
+
+    bool table::is_array()
+    {
+        return (size() == m()->size()) && !m()->empty();
     }
 
     std::map<tableKey, table>::iterator table::erase(const std::map<tableKey, table>::iterator& it)
@@ -63,9 +103,9 @@ namespace tableplusplus
     {
         if (t != o.t)
         {
-            if (t == TABLE_INTEGER || t == TABLE_FLOAT)
+            if (t == type::number_integer || t == type::number_float)
             {
-                if (t == TABLE_INTEGER || t == TABLE_FLOAT)
+                if (t == type::number_integer || t == type::number_float)
                 {
                     return double(*this) == double(o);
                 }
@@ -74,19 +114,19 @@ namespace tableplusplus
         }
         switch (t)
         {
-        case TABLE_NULL:
+        case type::null:
             return true;
             break;
-        case TABLE_BOOLEAN:
+        case type::boolean:
             return b == o.b;
             break;
-        case TABLE_INTEGER:
+        case type::number_integer:
             return i == o.i;
             break;
-        case TABLE_STRING:
+        case type::string:
             return s == o.s;
             break;
-        case TABLE_OBJECT:
+        case type::object:
             return _m == o._m;
             break;
         }
@@ -106,7 +146,7 @@ namespace tableplusplus
         tbl.b = b;
         tbl.s = s;
         tbl.i = i;
-        if (t == TABLE_OBJECT)
+        if (t == type::object)
         {
             for (auto it = m()->begin(); it != m()->end(); ++it)
             {
@@ -118,7 +158,7 @@ namespace tableplusplus
 
     void table::clear()
     {
-        t = TABLE_NULL;
+        t = type::null;
         i = 0;
         f = 0;
         b = false;
@@ -129,7 +169,7 @@ namespace tableplusplus
 
     size_t table::size()
     {
-        if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
+        if (t != type::object) throw std::runtime_error("Table value is not an object.");
         if (_m == nullptr) return 0;
         size_t sz = 0;
         while (true)
@@ -142,14 +182,14 @@ namespace tableplusplus
 
     void table::push_back(const table& j3)
     {
-        if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
+        if (t != type::object) throw std::runtime_error("Table value is not an object.");
         auto sz = size();
         m()->insert_or_assign(sz, j3);
     }
 
     void table::resize(const size_t sz)
     {
-        if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
+        if (t != type::object) throw std::runtime_error("Table value is not an object.");
         auto current = size();
         if (current == sz) return;
 
@@ -185,8 +225,8 @@ namespace tableplusplus
 
     table& table::operator[](const std::string& key)
     {
-        if (t == TABLE_NULL) t = TABLE_OBJECT;
-        if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
+        if (t == type::null) t = type::object;
+        if (t != type::object) throw std::runtime_error("Table value is not an object.");
         if (m()->find(key) == m()->end())
         {
             m()->insert_or_assign(key, nullptr);
@@ -202,8 +242,8 @@ namespace tableplusplus
 
     table& table::operator[](const size_t key)
     {
-        if (t == TABLE_NULL) t = TABLE_OBJECT;
-        if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
+        if (t == type::null) t = type::object;
+        if (t != type::object) throw std::runtime_error("Table value is not an object.");
         if (m()->find(key) == m()->end())
         {
             m()->insert_or_assign(key, nullptr);
@@ -214,7 +254,7 @@ namespace tableplusplus
 
     bool table::empty()
     {
-        if (t != TABLE_OBJECT) return true;
+        if (t != type::object) return true;
         if (m()->empty()) return true;
 
         return false;
@@ -222,10 +262,10 @@ namespace tableplusplus
 
     std::string table::to_json(const std::string indent)
     {
-        auto type = GetType();
-        if (type != TABLE_OBJECT)
+        auto type = get_type();
+        if (type != type::object)
         {
-            if (type == TABLE_NULL) return indent + "null";
+            if (type == type::null) return indent + "null";
             return indent + std::string(*this);
         }
         std::string j3;
@@ -236,7 +276,7 @@ namespace tableplusplus
             auto count = size();
             for (int n = 0; n < count; ++n)
             {
-                if ((*this)[n].t == TABLE_OBJECT && (*this)[n].empty()) continue;
+                if ((*this)[n].t == type::object && (*this)[n].empty()) continue;
                 j3 += (*this)[n].to_json(indent + "	");
                 if (n != count - 1) j3 += ",";
                 j3 += "\n";
@@ -250,9 +290,9 @@ namespace tableplusplus
             int count = m()->size();
             for (auto& pair : *this)
             {
-                if ((*this)[n].t == TABLE_OBJECT && (*this)[n].empty()) continue;
+                if ((*this)[n].t == type::object && (*this)[n].empty()) continue;
                 j3 += indent + "	\"" + std::string(pair.first) + "\":";
-                if (pair.second.GetType() == TABLE_OBJECT)
+                if (pair.second.get_type() == type::object)
                 {
                     j3 += "\n";
                     j3 += pair.second.to_json(indent + "	");
@@ -278,11 +318,11 @@ namespace tableplusplus
         return nlohmann::json::parse(data);
     }
 
-    table::table(const nlohmann::json& j3) : i(0), f(0), b(false), t(TABLE_NULL)
+    table::table(const nlohmann::json& j3) : i(0), f(0), b(false), t(type::null)
     {
         if (j3.is_array())
         {
-            t = TABLE_OBJECT;
+            t = type::object;
             for (int n = 0; n < j3.size(); ++n)
             {
                 m()->insert_or_assign(n, table(j3[n]));
@@ -290,7 +330,7 @@ namespace tableplusplus
         }
         else if (j3.is_object())
         {
-            t = TABLE_OBJECT;
+            t = type::object;
             for (const auto& pair : j3.items())
             {
                 m()->insert_or_assign(pair.key(), table(pair.value()));
@@ -298,22 +338,22 @@ namespace tableplusplus
         }
         else if (j3.is_string())
         {
-            t = TABLE_STRING;
+            t = type::string;
             s = j3;
         }
         else if (j3.is_boolean())
         {
-            t = TABLE_BOOLEAN;
+            t = type::boolean;
             b = j3;
         }
         else if (j3.is_number_float())
         {
-            t = TABLE_FLOAT;
+            t = type::number_float;
             f = j3;
         }
         else if (j3.is_number_integer() || j3.is_number_unsigned())
         {
-            t = TABLE_INTEGER;
+            t = type::number_integer;
             i = j3;
         }
     }
@@ -434,22 +474,22 @@ namespace tableplusplus
         if (it == m()->end()) return sol::make_object(L, sol::lua_nil);
         switch (it->second.t)
         {
-        case TABLE_FLOAT:
+        case type::number_float:
             return sol::make_object(L, it->second.f);
             break;
-        case TABLE_INTEGER:
+        case type::number_integer:
             return sol::make_object(L, it->second.i);
             break;
-        case TABLE_BOOLEAN:
+        case type::boolean:
             return sol::make_object(L, it->second.b);
             break;
-        case TABLE_STRING:
+        case type::string:
             return sol::make_object(L, it->second.s);
             break;
-        case TABLE_OBJECT:
+        case type::object:
             return sol::make_object(L, tablewrapper(it->second));
             break;
-        case TABLE_NULL:
+        case type::null:
         default:
             return sol::make_object(L, sol::lua_nil);
             break;
@@ -462,10 +502,10 @@ namespace tableplusplus
         L->new_usertype<tablekeywrapper>("tableplusplus_tablekey",
             sol::meta_method::type, [](const tablekeywrapper& v)
             {
-                if (v.t == TABLE_OBJECT) return "userdata";
-                if (v.t == TABLE_NULL) return "nil";
-                if (v.t == TABLE_INTEGER || v.t == TABLE_FLOAT) return "number";
-                if (v.t == TABLE_BOOLEAN) return "boolean";
+                if (v.t == table::type::object) return "userdata";
+                if (v.t == table::type::null) return "nil";
+                if (v.t == table::type::number_integer || v.t == table::type::number_float) return "number";
+                if (v.t == table::type::boolean) return "boolean";
                 return "userdata";
             },
             sol::meta_function::to_string, [](const tablekeywrapper& v)

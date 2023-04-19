@@ -41,7 +41,8 @@ You may not use this code in AI training models.
 #endif
 
 #if TABLEPLUSPLUS_INCLUDE_JSON
-    #include <json.hpp>
+    //#include <json.hpp>
+    #include "../nlohmann_json/single_include/nlohmann/json.hpp"
 #endif
 
 namespace tableplusplus
@@ -56,26 +57,25 @@ namespace tableplusplus
     extern void bind_table_plus_plus(sol::state* L);
 #endif
 
-    enum tableType
-    {
-        TABLE_OBJECT,
-        TABLE_NULL,
-        TABLE_INTEGER,
-        TABLE_FLOAT,
-        TABLE_BOOLEAN,
-        TABLE_STRING,
-        TABLE_INVALID
-    };
-
     class tableKey
     {
-        friend table;
-
         enum KeyType
         {
             KEY_STRING,
             KEY_INDEX
         };
+    public:
+
+        enum type
+        {
+            integer = KEY_INDEX,
+            string = KEY_STRING
+        };
+
+    private:
+        friend table;
+
+
         KeyType t;
 
         std::string s;
@@ -127,6 +127,8 @@ namespace tableplusplus
             i = 0;
         }
 
+        type get_type() { return type(t); };
+
 #ifdef SOL_VERSION
         friend IDKWTFLOL;
         friend tablekeywrapper;
@@ -137,15 +139,30 @@ namespace tableplusplus
 
     class table
     {
+    public:
+
+        enum type
+        {
+            object,
+            null,
+            number_float,
+            number_integer,
+            boolean,
+            string
+        };
+    private:
+
         double f;
         int64_t i;
         bool b;
         std::string s;
-        tableType t;
+        type t;
         std::shared_ptr<std::map<tableKey, table> > _m;
         std::shared_ptr<std::map<tableKey, table> > m();
 
     public:
+
+        type get_type() { return type(t); };
 
         table();
         ~table();
@@ -156,6 +173,15 @@ namespace tableplusplus
         table& operator[](const std::string& key);
         table& operator[](const int key);
         table& operator[](const size_t key);
+
+        bool is_string();
+        bool is_object();
+        bool is_number();
+        bool is_array();
+        bool is_integer();
+        bool is_float();
+        bool is_boolean();
+        bool is_null();
 
         std::map<tableKey, table>::iterator erase(const std::map<tableKey, table>::iterator& it);
         std::map<tableKey, table>::iterator find(const int key);
@@ -178,14 +204,9 @@ namespace tableplusplus
             return m()->end();
         }
 
-        tableType GetType() const
-        {
-            return t;
-        }
-
         operator bool() const
         {
-            if (t == TABLE_BOOLEAN) return b;
+            if (t == type::boolean) return b;
             return false;
         }
 
@@ -211,8 +232,8 @@ namespace tableplusplus
 
         operator int64_t() const
         {
-            if (t == TABLE_INTEGER) return i;
-            if (t == TABLE_FLOAT) return f;
+            if (t == type::number_integer) return i;
+            if (t == type::number_float) return f;
             return 0;
         }
 
@@ -223,27 +244,27 @@ namespace tableplusplus
 
         operator double() const
         {
-            if (t == TABLE_FLOAT) return f;
-            if (t == TABLE_INTEGER) return i;
+            if (t == type::number_float) return f;
+            if (t == type::number_integer) return i;
             return 0.0f;
         }
 
         operator std::string() const
         {
-            if (t == TABLE_STRING) return s;
-            if (t == TABLE_INTEGER)
+            if (t == type::string) return s;
+            if (t == type::number_integer)
             {
                 std::stringstream out;
                 out << i;
                 return out.str();
             }
-            if (t == TABLE_FLOAT)
+            if (t == type::number_float)
             {
                 std::stringstream out;
                 out << f;
                 return out.str();
             }
-            if (t == TABLE_BOOLEAN)
+            if (t == type::boolean)
             {
                 if (b) return "true";
                 return "false";
@@ -255,48 +276,48 @@ namespace tableplusplus
         {
             clear();
             i = i_;
-            t = TABLE_INTEGER;
+            t = type::number_integer;
         }
 
         table(const int64_t i_)
         {
             clear();
             i = i_;
-            t = TABLE_INTEGER;
+            t = type::number_integer;
         }
 
         table(const bool b_)
         {
             clear();
             b = b_;
-            t = TABLE_BOOLEAN;
+            t = type::boolean;
         }
 
         table(const float f_)
         {
             clear();
             f = f_;
-            t = TABLE_FLOAT;
+            t = type::number_float;
         }
 
         table(const double f_)
         {
             clear();
             f = f_;
-            t = TABLE_FLOAT;
+            t = type::number_float;
         }
 
         table(const std::string& s_)
         {
             clear();
             s = s_;
-            t = TABLE_STRING;
+            t = type::string;
         }
 
         table(const std::nullptr_t)
         {
             clear();
-            t = TABLE_NULL;
+            t = type::null;
         }
 
 #ifdef SOL_VERSION
