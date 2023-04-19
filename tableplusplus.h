@@ -41,8 +41,7 @@ You may not use this code in AI training models.
 #endif
 
 #if TABLEPLUSPLUS_INCLUDE_JSON
-    //#include <json.hpp>
-    #include "../nlohmann_json/single_include/nlohmann/json.hpp"
+    #include <json.hpp>
 #endif
 
 namespace tableplusplus
