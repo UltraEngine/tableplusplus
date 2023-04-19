@@ -51,14 +51,6 @@ L->new_usertype<Entity> (
 )
 ```
 
-Instead of this:
-
-```c++
-L->new_usertype<Entity> (
-	"properties", &Entity::properties
-)
-```
-
 ## Examples
 
 Here are some of the cool things you can do in C++ and Lua.
