@@ -41,15 +41,20 @@ Usage in Lua is identical to Lua tables, with the following exceptions:
 When declaring C++ classes in sol that use a table as a member, I found it was necessary to use a sol::property like this:
 ```c++
 L->new_usertype<Entity> (
-	"properties", sol::property([](const Entity& e) { return tableplusplus::tablewrapper(e.properties); }, [](Entity& e, sol::table t) { e.properties = t; })
+	"properties", sol::property(
+		[](const Entity& e) { return tableplusplus::tablewrapper(e.properties); },
+		[](Entity& e, sol::table t) { e.properties = t; }
+	)
 )
 ```
 
 Instead of this:
 
 ```c++
-"properties", &Entity::properties,
-```				
+L->new_usertype<Entity> (
+	"properties", &Entity::properties
+)
+``'
 
 ## Examples
 
