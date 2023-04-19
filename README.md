@@ -38,8 +38,23 @@ Usage in Lua is identical to Lua tables, with the following exceptions:
 - The only values that can be inserted into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
 - By default, there is no way to create a C++ table in Lua, because these usually are declared as a member of another class in C++. However, you can uncomment the following line in tableplusplus.cpp, which adds a C++ table creation function to Lua:
 ```c++
-L->set_function("ctable", [](){ return table(); });
+L->new_usertype<Entity> (
+	L->set_function("ctable", [](){ return table(); });
+)
 ```
+
+When declaring C++ classes in sol that use a table as a member, I found it was necessary to use a sol::property like this:
+```c++
+L->new_usertype<Entity> (
+	"properties", sol::property([](const Entity& e) { return e.properties; }, [](Entity& e, sol::table t) { e.properties = t; })
+)
+```
+
+Instead of this:
+
+```c++
+"properties", &Entity::properties,
+```				
 
 ## Examples
 
