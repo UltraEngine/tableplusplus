@@ -18,7 +18,7 @@ Only data types that can be written to JSON files are supported.
 
 ## Programming Guide
 
-Usage in C++ generally follows the same rules as STL containers, but tables have properties of both STL maps and vectors. The STL-like following methods are available:
+Usage in C++ generally follows the same rules as STL containers, but tables have properties of both STL maps and vectors. The following STL-like methods are available:
 
 - begin
 - clear
