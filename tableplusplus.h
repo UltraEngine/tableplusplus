@@ -20,21 +20,30 @@ You may not use this code in AI training models.
 ----------------------------------------------------------------------------------------*/
 
 #pragma once
+
 #ifndef __TABLE_PLUS_PLUS
 #define __TABLE_PLUS_PLUS
+
+// Options
+#define TABLEPLUSPLUS_INCLUDE_SOL 1
+#define TABLEPLUSPLUS_INCLUDE_JSON 1
+#define TABLEPLUSPLUS_LUATABLEFUNCTION 0
 
 #include <string>
 #include <map>
 #include <sstream>
 #include <stdexcept>
 
-//Comment this out if you don't want to use Sol
-#define SOL_NO_CHECK_NUMBER_PRECISION 1
-#define SOL_ALL_SAFETIES_ON 1
-#include <sol/sol.hpp>
+#if TABLEPLUSPLUS_INCLUDE_SOL
+    #define SOL_NO_CHECK_NUMBER_PRECISION 1
+    #define SOL_ALL_SAFETIES_ON 1
+    #include <sol/sol.hpp>
+#endif
 
-//Comment this out if you don't want to use nlohmann::json
-#include <json.hpp>
+#if TABLEPLUSPLUS_INCLUDE_JSON
+    //#include <json.hpp>
+    #include "../nlohmann_json/single_include/nlohmann/json.hpp"
+#endif
 
 namespace tableplusplus
 {
@@ -62,10 +71,6 @@ namespace tableplusplus
     class tableKey
     {
         friend table;
-#ifdef SOL_VERSION
-        friend IDKWTFLOL;
-        friend tablekeywrapper;
-#endif
 
         enum KeyType
         {
@@ -124,6 +129,8 @@ namespace tableplusplus
         }
 
 #ifdef SOL_VERSION
+        friend IDKWTFLOL;
+        friend tablekeywrapper;
         friend tablewrapper;
         friend void bind_table_plus_plus(sol::state*);
 #endif        
@@ -131,9 +138,6 @@ namespace tableplusplus
 
     class table
     {
-#ifdef SOL_VERSION
-        friend IDKWTFLOL;
-#endif
         double f;
         int64_t i;
         bool b;
@@ -148,9 +152,23 @@ namespace tableplusplus
         ~table();
         
         bool operator==(const table& k) const;
-        
         bool operator!=(const table& k) const;
-        
+        table& operator[](const char* c);
+        table& operator[](const std::string& key);
+        table& operator[](const int key);
+        table& operator[](const size_t key);
+
+        std::map<tableKey, table>::iterator erase(const std::map<tableKey, table>::iterator& it);
+        std::map<tableKey, table>::iterator find(const int key);
+        std::map<tableKey, table>::iterator find(const std::string& key);
+        bool empty();
+        void clear();
+        size_t size();
+        void push_back(const table& j3);
+        void resize(const size_t sz);
+        std::string to_json(const std::string indent = "");
+        table copy();
+
         std::map<tableKey, table>::iterator begin()
         {
             return m()->begin();
@@ -234,8 +252,6 @@ namespace tableplusplus
             return "";
         }
 
-        void clear();
-
         table(const int i_)
         {
             clear();
@@ -284,29 +300,18 @@ namespace tableplusplus
             t = TABLE_NULL;
         }
 
+#ifdef SOL_VERSION
+        friend IDKWTFLOL;
+
+        table(const sol::table& tbl);
+#endif
+
 #ifdef NLOHMANN_JSON_VERSION_MAJOR
 
         table(const nlohmann::json& j3);
+        operator nlohmann::json();
 
 #endif
-
-        table& operator[](const char* c);
-
-        table& operator[](const std::string& key);
-
-        table& operator[](const int key);
-        
-        table& operator[](const size_t key);
-
-        //This is not optimal, but it's the way Lua tables work
-        size_t size();
-        
-        void push_back(const table& j3);
-
-        //This is extremely inefficient and should not be used for large arrays, but it's the best emulation of Lua table behavior
-        void resize(const size_t sz);
-
-        std::string to_json(const std::string indent = "");
 
 #ifdef SOL_VERSION
 
@@ -432,4 +437,10 @@ namespace tableplusplus
     };
 #endif
 }
+
+//Cleanup
+#undef TABLEPLUSPLUS_INCLUDE_SOL
+#undef TABLEPLUSPLUS_INCLUDE_JSON
+#undef TABLEPLUSPLUS_LUATABLEFUNCTION
+
 #endif

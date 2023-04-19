@@ -38,6 +38,21 @@ namespace tableplusplus
         _m = nullptr;
     }
 
+    std::map<tableKey, table>::iterator table::erase(const std::map<tableKey, table>::iterator& it)
+    {
+        return m()->erase(it);
+    }
+
+    std::map<tableKey, table>::iterator table::find(const int key)
+    {
+        return m()->find(key);
+    }
+
+    std::map<tableKey, table>::iterator table::find(const std::string& key)
+    {
+        return m()->find(key);
+    }
+
     std::shared_ptr<std::map<tableKey, table> > table::m()
     {
         if (_m == nullptr) _m = std::make_shared<std::map<tableKey, table> >();
@@ -81,6 +96,24 @@ namespace tableplusplus
     bool table::operator!=(const table& o) const
     {
         return !((*this) == o);
+    }
+
+    table table::copy()
+    {
+        table tbl;
+        tbl.t = t;
+        tbl.f = f;
+        tbl.b = b;
+        tbl.s = s;
+        tbl.i = i;
+        if (t == TABLE_OBJECT)
+        {
+            for (auto it = m()->begin(); it != m()->end(); ++it)
+            {
+                tbl.m()->insert_or_assign(it->first, it->second.copy());
+            }
+        }
+        return tbl;
     }
 
     void table::clear()
@@ -147,12 +180,12 @@ namespace tableplusplus
 
     table& table::operator[](const char* c)
     {
-        if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
         return (*this)[std::string(c)];
     }
 
     table& table::operator[](const std::string& key)
     {
+        if (t == TABLE_NULL) t = TABLE_OBJECT;
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
         if (m()->find(key) == m()->end())
         {
@@ -169,6 +202,7 @@ namespace tableplusplus
 
     table& table::operator[](const size_t key)
     {
+        if (t == TABLE_NULL) t = TABLE_OBJECT;
         if (t != TABLE_OBJECT) throw std::runtime_error("Table value is not an object.");
         if (m()->find(key) == m()->end())
         {
@@ -176,6 +210,14 @@ namespace tableplusplus
         }
         auto it = m()->find(key);
         return it->second;
+    }
+
+    bool table::empty()
+    {
+        if (t != TABLE_OBJECT) return true;
+        if (m()->empty()) return true;
+
+        return false;
     }
 
     std::string table::to_json(const std::string indent)
@@ -194,6 +236,7 @@ namespace tableplusplus
             auto count = size();
             for (int n = 0; n < count; ++n)
             {
+                if ((*this)[n].t == TABLE_OBJECT && (*this)[n].empty()) continue;
                 j3 += (*this)[n].to_json(indent + "	");
                 if (n != count - 1) j3 += ",";
                 j3 += "\n";
@@ -207,6 +250,7 @@ namespace tableplusplus
             int count = m()->size();
             for (auto& pair : *this)
             {
+                if ((*this)[n].t == TABLE_OBJECT && (*this)[n].empty()) continue;
                 j3 += indent + "	\"" + std::string(pair.first) + "\":";
                 if (pair.second.GetType() == TABLE_OBJECT)
                 {
@@ -227,6 +271,12 @@ namespace tableplusplus
     }
 
 #ifdef NLOHMANN_JSON_VERSION_MAJOR
+
+    table::operator nlohmann::json()
+    {
+        auto data = to_json();
+        return nlohmann::json::parse(data);
+    }
 
     table::table(const nlohmann::json& j3) : i(0), f(0), b(false), t(TABLE_NULL)
     {
@@ -315,11 +365,54 @@ namespace tableplusplus
             m()->insert_or_assign(key, nullptr);
             break;
         case sol::type::table:
-            throw(std::runtime_error("cannot assign a Lua table to a C++ table"));
+            {                
+                table tbl = value.as<sol::table>();
+                m()->insert_or_assign(key, tbl);
+
+            }
+            //throw(std::runtime_error("cannot assign a Lua table to a C++ table"));
             break;
         default:
             throw(std::runtime_error("assigning illegal type to C++ table"));
             break;
+        }
+    }
+
+    table::table(const sol::table& tbl)
+    {
+        for (const auto& pair : tbl)
+        {
+            tableKey key;
+            switch (pair.first.get_type())
+            {
+            case sol::type::string:
+                key = pair.first.as<std::string>();
+                break;
+            case sol::type::number:
+                key = pair.first.as<int>();
+                break;
+            default:
+                continue;
+            }
+            switch (pair.second.get_type())
+            {
+            case sol::type::number:
+                m()->insert_or_assign(key, pair.second.as<double>());
+                break;
+            case sol::type::string:
+                m()->insert_or_assign(key, pair.second.as<std::string>());
+                break;
+            case sol::type::boolean:
+                m()->insert_or_assign(key, pair.second.as<bool>());
+                break;
+            case sol::type::table:
+                {
+                    sol::table tbl = pair.second.as<sol::table>();
+                    //tbl.registry_index()
+                    m()->insert_or_assign(key, tbl);
+                }
+            break;
+            }
         }
     }
 
@@ -403,7 +496,9 @@ namespace tableplusplus
                 [](sol::this_state L, tablewrapper& t, std::string k) { return t.dynamic_gets(L, k); }
             )
         );
+#if TABLEPLUSPLUS_LUATABLEFUNCTION
         L->set_function("ctable", []() { return tablewrapper(table()); });
+#endif
     }
 #endif
 }
