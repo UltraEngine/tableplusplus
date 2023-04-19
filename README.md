@@ -170,7 +170,7 @@ printf(t.to_json());
 
 ## Programming Guide
 
-Usage in C++ generally follows the same rules as STL containers like maps and vectors. The following methods are available:
+Usage in C++ generally follows the same rules as STL containers. Tables have properties of both STL maps and vectors. The following methods are available:
 
 - begin
 - clear
