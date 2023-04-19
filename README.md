@@ -16,17 +16,27 @@ Tables can be saved in JSON format or loaded from JSON using the [nlohmann::json
 
 Only data types that can be written to JSON files are supported.
 
-## License
+## Programming Guide
 
-This code may be used freely for any purpose unless it is stated otherwise below.
+Usage in C++ generally follows the same rules as STL containers, but tables have properties of both STL maps and vectors. The following methods are available:
 
-If you use this code you must include this unmodified README file somewhere in your application directory or subdirectory where it is accessible to the end user.
+- begin
+- clear
+- empty
+- end
+- erase
+- find
+- operator[]
+- push_back
+- size
 
-This unmodified readme file must be included in any source code distribution, or distribution of code derived from this code.
+Note that size() will return the number of entries when the table is treated as a Lua array, which may be different from the number of entries that iterating through begin()...end() will provide.
 
-You may not misrepresent the origin of this code.
+Values can be retrieved using either a string or an integer for the key.
 
-You may not use this code or any derivatives thereof in AI training models.
+Usage in Lua is identical to Lua tables, with the following exceptions:
+- C++ tables are created with the ctable() function instead of {}.
+- The only values that can be inserted into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
 
 ## Examples
 
@@ -168,24 +178,14 @@ t["subarray"][2] = 3;
 printf(t.to_json());
 ```
 
-## Programming Guide
+## License
 
-Usage in C++ generally follows the same rules as STL containers, but tables have properties of both STL maps and vectors. The following methods are available:
+This code may be used freely for any purpose unless it is stated otherwise below.
 
-- begin
-- clear
-- empty
-- end
-- erase
-- find
-- operator[]
-- push_back
-- size
+If you use this code you must include this unmodified README file somewhere in your application directory or subdirectory where it is accessible to the end user.
 
-Note that size() will return the number of entries when the table is treated as a Lua array, which may be different from the number of entries that iterating through begin()...end() will provide.
+This unmodified readme file must be included in any source code distribution, or distribution of code derived from this code.
 
-Values can be retrieved using either a string or an integer for the key.
+You may not misrepresent the origin of this code.
 
-Usage in Lua is identical to Lua tables, with the following exceptions:
-- C++ tables are created with the ctable() function instead of {}.
-- The only values that can be inserted into C++ tables are booleans, numbers, strings, nil, and other C++ tables.
+You may not use this code or any derivatives thereof in AI training models.
