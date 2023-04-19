@@ -176,6 +176,8 @@ Usage in C++ generally follows the same rules as STL containers like maps and ve
 - clear
 - empty
 - end
+- erase
+- find
 - operator[]
 - push_back
 - size
