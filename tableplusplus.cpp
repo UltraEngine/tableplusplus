@@ -23,6 +23,10 @@ You may not use this code in AI training models.
 
 namespace tableplusplus
 {
+#ifdef SOL_VERSION
+    std::map<int, table> table::copiedluatables;
+#endif
+
     table::table()
     {
         i = 0;
@@ -75,27 +79,28 @@ namespace tableplusplus
 
     bool table::is_array()
     {
+        if (find(0) == end()) return false;
         return (size() == m()->size()) && !m()->empty();
     }
 
-    std::map<tableKey, table>::iterator table::erase(const std::map<tableKey, table>::iterator& it)
+    std::map<tablekey, table>::iterator table::erase(const std::map<tablekey, table>::iterator& it)
     {
         return m()->erase(it);
     }
 
-    std::map<tableKey, table>::iterator table::find(const int key)
+    std::map<tablekey, table>::iterator table::find(const int key)
     {
         return m()->find(key);
     }
 
-    std::map<tableKey, table>::iterator table::find(const std::string& key)
+    std::map<tablekey, table>::iterator table::find(const std::string& key)
     {
         return m()->find(key);
     }
 
-    std::shared_ptr<std::map<tableKey, table> > table::m()
+    std::shared_ptr<std::map<tablekey, table> > table::m()
     {
-        if (_m == nullptr) _m = std::make_shared<std::map<tableKey, table> >();
+        if (_m == nullptr) _m = std::make_shared<std::map<tablekey, table> >();
         return _m;
     }
 
@@ -138,16 +143,13 @@ namespace tableplusplus
         return !((*this) == o);
     }
 
-    table table::copy()
+    table table::copy(const bool recursive)
     {
-        table tbl;
-        tbl.t = t;
-        tbl.f = f;
-        tbl.b = b;
-        tbl.s = s;
-        tbl.i = i;
-        if (t == type::object)
+        table tbl = *this;
+        tbl._m = nullptr;
+        if (t == type::object && recursive == true)
         {
+            tbl.m();
             for (auto it = m()->begin(); it != m()->end(); ++it)
             {
                 tbl.m()->insert_or_assign(it->first, it->second.copy());
@@ -201,7 +203,7 @@ namespace tableplusplus
             auto it = m()->lower_bound(sz);
             while (it != m()->end())
             {
-                if (it->first.t != tableKey::KeyType::KEY_INDEX) break;// index keys are ordered first so this is fine
+                if (it->first.t != tablekey::type::index) break;// index keys are ordered first so this is fine
                 if (it->first.i >= sz)
                 {
                     it = m()->erase(it);
@@ -269,8 +271,7 @@ namespace tableplusplus
             return indent + std::string(*this);
         }
         std::string j3;
-        bool isarray = (size() == m()->size()) && !m()->empty();
-        if (isarray)
+        if (is_array())
         {
             j3 += indent + "[\n";
             auto count = size();
@@ -285,28 +286,34 @@ namespace tableplusplus
         }
         else
         {
-            j3 += indent + "{\n";
             int n = 0;
             int count = m()->size();
+            std::vector<std::pair<tablekey, table> > pairs;
+            pairs.reserve(m()->size());
             for (auto& pair : *this)
             {
-                if ((*this)[n].t == type::object && (*this)[n].empty()) continue;
-                j3 += indent + "	\"" + std::string(pair.first) + "\":";
-                if (pair.second.get_type() == type::object)
+                if (pair.second.is_object() && pair.second.empty()) continue;
+                pairs.push_back(pair);
+            }
+            if (pairs.empty()) return "null";
+            j3 += indent + "{\n";
+            for (size_t n = 0; n < pairs.size(); ++n)
+            {
+                j3 += indent + "	\"" + std::string(pairs[n].first) + "\":";
+                if (pairs[n].second.get_type() == type::object)
                 {
                     j3 += "\n";
-                    j3 += pair.second.to_json(indent + "	");
+                    j3 += pairs[n].second.to_json(indent + "	");
                 }
                 else
                 {
-                    j3 += " " + pair.second.to_json();
+                    j3 += " " + pairs[n].second.to_json();
                 }
-                if (n != count - 1) j3 += ",";
+                if (n != pairs.size() - 1) j3 += ",";
                 j3 += "\n";
-                ++n;
             }
             j3 += indent + "}";
-        }
+        }        
         return j3;
     }
 
@@ -364,15 +371,15 @@ namespace tableplusplus
 
     void table::dynamic_sets(const std::string& key, const sol::object& value)
     {
-        dynamic_set(tableKey(key), value);
+        dynamic_set(tablekey(key), value);
     }
 
     void table::dynamic_seti(const int key, const sol::object& value)
     {
-        dynamic_set(tableKey(key - 1), value);
+        dynamic_set(tablekey(key - 1), value);
     }
-
-    void table::dynamic_set(const tableKey& key, const sol::object& value)
+     
+    void table::dynamic_set(const tablekey& key, const sol::object& value)
     {
         double f;
         switch (value.get_type())
@@ -405,10 +412,10 @@ namespace tableplusplus
             m()->insert_or_assign(key, nullptr);
             break;
         case sol::type::table:
-            {                
-                table tbl = value.as<sol::table>();
-                m()->insert_or_assign(key, tbl);
-
+            {
+                copiedluatables.clear();
+                m()->insert_or_assign(key, table(value.as<sol::table>(), true));
+                copiedluatables.clear();
             }
             //throw(std::runtime_error("cannot assign a Lua table to a C++ table"));
             break;
@@ -420,9 +427,28 @@ namespace tableplusplus
 
     table::table(const sol::table& tbl)
     {
+        copiedluatables.clear();
+        *this = table(tbl, true);
+        copiedluatables.clear();
+    }
+
+    table::table(const sol::table& tbl, const bool handleduplicates)
+    {
+        if (handleduplicates)
+        {
+            if (copiedluatables.find(tbl.registry_index()) != copiedluatables.end())
+            {
+                *this = copiedluatables[tbl.registry_index()];
+                return;
+            }            
+            copiedluatables[tbl.registry_index()] = *this;
+        }
+
+        t = type::object;
+        m();
         for (const auto& pair : tbl)
         {
-            tableKey key;
+            tablekey key;
             switch (pair.first.get_type())
             {
             case sol::type::string:
@@ -445,29 +471,26 @@ namespace tableplusplus
             case sol::type::boolean:
                 m()->insert_or_assign(key, pair.second.as<bool>());
                 break;
+            //TODO: prevent infinite recursive loops
             case sol::type::table:
-                {
-                    sol::table tbl = pair.second.as<sol::table>();
-                    //tbl.registry_index()
-                    m()->insert_or_assign(key, tbl);
-                }
+                m()->insert_or_assign(key, table(pair.second.as<sol::table>(), handleduplicates));
             break;
             }
-        }
+        }       
     }
 
     sol::object table::dynamic_geti(sol::this_state L, const int key)
     {
         if (key < 1) return sol::lua_nil;
-        return dynamic_get(L, tableKey(key - 1));
+        return dynamic_get(L, tablekey(key - 1));
     }
 
     sol::object table::dynamic_gets(sol::this_state L, const std::string& key)
     {
-        return dynamic_get(L, tableKey(key));
+        return dynamic_get(L, tablekey(key));
     }
 
-    sol::object table::dynamic_get(sol::this_state L, const tableKey& key)
+    sol::object table::dynamic_get(sol::this_state L, const tablekey& key)
     {
         auto sz = m()->size();
         auto it = m()->find(key);
@@ -502,28 +525,35 @@ namespace tableplusplus
         L->new_usertype<tablekeywrapper>("tableplusplus_tablekey",
             sol::meta_method::type, [](const tablekeywrapper& v)
             {
-                if (v.t == table::type::object) return "userdata";
-                if (v.t == table::type::null) return "nil";
-                if (v.t == table::type::number_integer || v.t == table::type::number_float) return "number";
-                if (v.t == table::type::boolean) return "boolean";
-                return "userdata";
+                if (v.t == tablekey::type::name) return "string";
+                return "number";
             },
             sol::meta_function::to_string, [](const tablekeywrapper& v)
             {
-           //     if (v.t == tableKey::KeyType::KEY_INDEX) throw(std::runtime_error("value is not a string."));
-                if (v.t == tableKey::KeyType::KEY_STRING) return v.s;
-                return std::string("");
+           //     if (v.t == tablekey::KeyType::key::index) throw(std::runtime_error("value is not a string."));
+                //if (v.t == tablekey::type::name) return v.s;
+                std::string s = v;
+                return s;
             },
             sol::meta_function::concatenation, [](const tablekeywrapper& v, std::string s)
             {
-            //    if (v.t == tableKey::KeyType::KEY_INDEX) throw(std::runtime_error("value is not a string."));
+            //    if (v.t == tablekey::KeyType::key::index) throw(std::runtime_error("value is not a string."));
                 std::string ss;
-                if (v.t == tableKey::KeyType::KEY_STRING) ss = v.s;
+                if (v.t == tablekey::type::name) ss = v.s;
                 return ss + s;
             }
             );
 
         L->new_usertype<tablewrapper>("tableplusplus_table",
+            sol::meta_method::type, [](const tablewrapper& v)
+            {
+                if (v.t == table::type::object) return "userdata";
+                if (v.t == table::type::null) return "nil";
+                if (v.t == table::type::string) return "string";
+                if (v.t == table::type::number_integer || v.t == table::type::number_float) return "number";
+                if (v.t == table::type::boolean) return "boolean";
+                return "userdata";
+            },
             sol::meta_function::pairs, &IDKWTFLOL::my_pairs,
             sol::meta_function::to_string, [](const tablewrapper& v) { std::string s = v; return s; },
             sol::meta_method::equal_to, [](const tablewrapper& a, const tablewrapper& b) { return a == b; },

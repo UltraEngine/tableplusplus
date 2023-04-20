@@ -41,13 +41,14 @@ You may not use this code in AI training models.
 #endif
 
 #if TABLEPLUSPLUS_INCLUDE_JSON
-    #include <json.hpp>
+    //#include <json.hpp>
+    #include "../nlohmann_json/single_include/nlohmann/json.hpp"
 #endif
 
 namespace tableplusplus
 {
     class table;
-    class tableKey;
+    class tablekey;
 
 #ifdef SOL_VERSION
     struct IDKWTFLOL;
@@ -56,37 +57,32 @@ namespace tableplusplus
     extern void bind_table_plus_plus(sol::state* L);
 #endif
 
-    class tableKey
+    class tablekey
     {
-        enum KeyType
-        {
-            KEY_STRING,
-            KEY_INDEX
-        };
     public:
 
         enum type
         {
-            integer = KEY_INDEX,
-            string = KEY_STRING
+            index,
+            name
         };
 
     private:
         friend table;
 
 
-        KeyType t;
+        type t;
 
         std::string s;
         int i;
 
-        tableKey() {};
+        tablekey() {};
 
     public:
 
         operator std::string() const
         {
-            if (t == KEY_STRING) return s;
+            if (t == type::name) return s;
             std::stringstream out;
             out << i;
             return out.str();
@@ -94,39 +90,39 @@ namespace tableplusplus
 
         operator int() const
         {
-            if (t == KEY_STRING) return 0;
+            if (t == type::name) return 0;
             return i;
         }
 
-        bool operator<(const tableKey k) const
+        bool operator<(const tablekey k) const
         {
-            if (t == KEY_INDEX && k.t == KEY_STRING) return true;
-            if (t == KEY_STRING && k.t == KEY_INDEX) return false;
-            if (t == KEY_INDEX) return i < k.i;
+            if (t == type::index && k.t == type::name) return true;
+            if (t == type::name && k.t == type::index) return false;
+            if (t == type::index) return i < k.i;
             return s < k.s;
         }
 
-        bool operator==(const tableKey k) const
+        bool operator==(const tablekey k) const
         {
             if (t != k.t) return false;
-            if (t == KEY_INDEX) return i == k.i;
+            if (t == type::index) return i == k.i;
             return s == k.s;
         }
 
-        tableKey(const int index)
+        tablekey(const int index)
         {
-            t = KEY_INDEX;
+            t = type::index;
             i = index;
         }
 
-        tableKey(const std::string& s)
+        tablekey(const std::string& s)
         {
-            t = KEY_STRING;
+            t = type::name;
             this->s = s;
             i = 0;
         }
 
-        type get_type() { return type(t); };
+        type get_type() { return t; };
 
 #ifdef SOL_VERSION
         friend IDKWTFLOL;
@@ -156,8 +152,11 @@ namespace tableplusplus
         bool b;
         std::string s;
         type t;
-        std::shared_ptr<std::map<tableKey, table> > _m;
-        std::shared_ptr<std::map<tableKey, table> > m();
+        std::shared_ptr<std::map<tablekey, table> > _m;
+        std::shared_ptr<std::map<tablekey, table> > m();
+#ifdef SOL_VERSION
+        static std::map<int, table> copiedluatables;
+#endif
 
     public:
 
@@ -182,23 +181,23 @@ namespace tableplusplus
         bool is_boolean();
         bool is_null();
 
-        std::map<tableKey, table>::iterator erase(const std::map<tableKey, table>::iterator& it);
-        std::map<tableKey, table>::iterator find(const int key);
-        std::map<tableKey, table>::iterator find(const std::string& key);
+        std::map<tablekey, table>::iterator erase(const std::map<tablekey, table>::iterator& it);
+        std::map<tablekey, table>::iterator find(const int key);
+        std::map<tablekey, table>::iterator find(const std::string& key);
         bool empty();
         void clear();
         size_t size();
         void push_back(const table& j3);
         void resize(const size_t sz);
         std::string to_json(const std::string indent = "");
-        table copy();
+        table copy(const bool recursive = true);
 
-        std::map<tableKey, table>::iterator begin()
+        std::map<tablekey, table>::iterator begin()
         {
             return m()->begin();
         }
 
-        std::map<tableKey, table>::iterator end()
+        std::map<tablekey, table>::iterator end()
         {
             return m()->end();
         }
@@ -268,7 +267,7 @@ namespace tableplusplus
                 if (b) return "true";
                 return "false";
             }
-            return "";
+            return "null";
         }
 
         table(const int i_)
@@ -321,10 +320,12 @@ namespace tableplusplus
 
 #ifdef SOL_VERSION
         friend IDKWTFLOL;
-
         table(const sol::table& tbl);
+    private:
+        table(const sol::table& tbl, const bool handleduplicates);
+    public:
 #endif
-
+        
 #ifdef NLOHMANN_JSON_VERSION_MAJOR
 
         table(const nlohmann::json& j3);
@@ -335,11 +336,11 @@ namespace tableplusplus
 #ifdef SOL_VERSION
 
     private:
-        void dynamic_set(const tableKey& key, const sol::object& value);
+        void dynamic_set(const tablekey& key, const sol::object& value);
         void dynamic_sets(const std::string& key, const sol::object& value);
         void dynamic_seti(const int key, const sol::object& value);
 
-        sol::object dynamic_get(sol::this_state L, const tableKey& key);
+        sol::object dynamic_get(sol::this_state L, const tablekey& key);
         sol::object dynamic_gets(sol::this_state L, const std::string& key);
         sol::object dynamic_geti(sol::this_state L, const int key);
        
@@ -351,17 +352,17 @@ namespace tableplusplus
 
 #ifdef SOL_VERSION
 
-    struct tablekeywrapper : private tableKey
+    struct tablekeywrapper : private tablekey
     {
         friend tablekeywrapper;
         friend void bind_table_plus_plus(sol::state* L);
 
-        tableKey tokey()
+        tablekey tokey()
         {
             return *this;
         }
 
-        tablekeywrapper(const tableKey& t)
+        tablekeywrapper(const tablekey& t)
         {
             this->t = t.t;
             this->i = t.i;
@@ -398,7 +399,7 @@ namespace tableplusplus
     struct IDKWTFLOL
     {
         struct lua_iterator_state {
-            typedef std::map<tableKey, table>::iterator it_t;
+            typedef std::map<tablekey, table>::iterator it_t;
             it_t it;
             it_t last;
 
