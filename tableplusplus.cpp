@@ -292,6 +292,7 @@ namespace tableplusplus
             pairs.reserve(m()->size());
             for (auto& pair : *this)
             {
+                if (pair.second.is_null()) continue;
                 if (pair.second.is_object() && pair.second.empty()) continue;
                 pairs.push_back(pair);
             }
@@ -474,7 +475,7 @@ namespace tableplusplus
             //TODO: prevent infinite recursive loops
             case sol::type::table:
                 m()->insert_or_assign(key, table(pair.second.as<sol::table>(), handleduplicates));
-            break;
+                break;
             }
         }       
     }
