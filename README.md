@@ -36,6 +36,15 @@ Additional methods are below:
 - get_type
 - to_json
 
+get_type will return one of the following:
+
+- table::type::object
+- table::type::null
+- table::type::string
+- table::type::boolean
+- table::type::number_float
+- table::type::number_integer
+
 Note that size() will return the number of entries when the table is treated as a Lua array, which may be different from the number of entries that iterating through begin()...end() will provide.
 
 Values can be retrieved using either a string or an integer for the key.
