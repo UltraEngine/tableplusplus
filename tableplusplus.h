@@ -41,7 +41,8 @@ You may not use this code in AI training models.
 #endif
 
 #if TABLEPLUSPLUS_INCLUDE_JSON
-    #include <json.hpp>
+    //#include <json.hpp>
+    #include "../nlohmann_json/single_include/nlohmann/json.hpp"
 #endif
 
 namespace tableplusplus
@@ -121,7 +122,7 @@ namespace tableplusplus
             i = 0;
         }
 
-        type get_type() { return t; };
+        type get_type() const { return t; };
 
 #ifdef SOL_VERSION
         friend IDKWTFLOL;
@@ -133,6 +134,7 @@ namespace tableplusplus
 
     class table
     {
+        static std::string replace(const std::string& s, const std::string& from, const std::string& to);
     public:
 
         enum type
@@ -190,6 +192,8 @@ namespace tableplusplus
         void resize(const size_t sz);
         std::string to_json(const std::string indent = "");
         table copy(const bool recursive = true);
+
+        bool operator==(const bool b) const;
 
         std::map<tablekey, table>::iterator begin()
         {
@@ -308,6 +312,13 @@ namespace tableplusplus
         {
             clear();
             s = s_;
+            t = type::string;
+        }
+
+        table(const char* c)
+        {
+            clear();
+            s = std::string(c);
             t = type::string;
         }
 

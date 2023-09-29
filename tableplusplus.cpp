@@ -78,9 +78,13 @@ namespace tableplusplus
     }
 
     bool table::is_array()
-    {
+    { 
+        if (t != type::object) return false;
+        if (_m == NULL) return false;
+        if (m()->empty()) return false;
         if (find(0) == end()) return false;
-        return (size() == m()->size()) && !m()->empty();
+        if (size() != m()->size()) return false;
+        return true;
     }
 
     std::map<tablekey, table>::iterator table::erase(const std::map<tablekey, table>::iterator& it)
@@ -103,6 +107,12 @@ namespace tableplusplus
         if (_m == nullptr) _m = std::make_shared<std::map<tablekey, table> >();
         return _m;
     }
+    
+    bool table::operator==(const bool b) const
+    {
+        if (t == type::boolean and this->b == b) return true;
+        return false;
+    }
 
     bool table::operator==(const table& o) const
     {
@@ -110,7 +120,7 @@ namespace tableplusplus
         {
             if (t == type::number_integer || t == type::number_float)
             {
-                if (t == type::number_integer || t == type::number_float)
+                if (o.t == type::number_integer || o.t == type::number_float)
                 {
                     return double(*this) == double(o);
                 }
@@ -165,7 +175,7 @@ namespace tableplusplus
         f = 0;
         b = false;
         s.clear();
-        //_m = nullptr;
+        _m = nullptr;
         //_v = nullptr;
     }
 
@@ -262,12 +272,32 @@ namespace tableplusplus
         return false;
     }
 
+    std::string table::replace(const std::string& s, const std::string& from, const std::string& to)
+    {
+        std::string str = s;
+        size_t start_pos = 0;
+        while ((start_pos = str.find(from, start_pos)) != std::string::npos)
+        {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+        }
+        return str;
+    }
+
     std::string table::to_json(const std::string indent)
     {
         auto type = get_type();
         if (type != type::object)
         {
             if (type == type::null) return indent + "null";
+            if (type == type::string)
+            {
+                std::string s = this->s;
+                s = replace(s, "\"", "\\\"");
+                s = replace(s, "\n", "\\n");
+                s = replace(s, "\t", "\\t");
+                return indent + "\"" + s + "\"";
+            }
             return indent + std::string(*this);
         }
         std::string j3;
@@ -293,10 +323,10 @@ namespace tableplusplus
             for (auto& pair : *this)
             {
                 if (pair.second.is_null()) continue;
-                if (pair.second.is_object() && pair.second.empty()) continue;
+                //if (pair.second.is_object() && pair.second.empty()) continue;
                 pairs.push_back(pair);
             }
-            if (pairs.empty()) return "null";
+            if (pairs.empty()) return indent + "{}\n";
             j3 += indent + "{\n";
             for (size_t n = 0; n < pairs.size(); ++n)
             {
@@ -333,7 +363,8 @@ namespace tableplusplus
             t = type::object;
             for (int n = 0; n < j3.size(); ++n)
             {
-                m()->insert_or_assign(n, table(j3[n]));
+                auto t = table(j3[n]);
+                m()->insert_or_assign(n, t);
             }
         }
         else if (j3.is_object())
@@ -548,7 +579,7 @@ namespace tableplusplus
         L->new_usertype<tablewrapper>("tableplusplus_table",
             sol::meta_method::type, [](const tablewrapper& v)
             {
-                if (v.t == table::type::object) return "userdata";
+                if (v.t == table::type::object) return "table";
                 if (v.t == table::type::null) return "nil";
                 if (v.t == table::type::string) return "string";
                 if (v.t == table::type::number_integer || v.t == table::type::number_float) return "number";
