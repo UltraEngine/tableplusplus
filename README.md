@@ -221,7 +221,7 @@ This code may be used freely for any purpose unless it is stated otherwise below
 
 If you use this code you must include this unmodified README file somewhere in your application directory or subdirectory where it is accessible to the end user.
 
-This unmodified readme file must be included in any source code distribution, or distribution of code derived from this code.
+This unmodified readme file must be included in any source code distribution, or distribution of code derived from this code, or with any compiled binary that uses this code.
 
 You may not misrepresent the origin of this code.
 
